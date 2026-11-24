@@ -1,6 +1,6 @@
-# Curso Práctico de Iniciación al uso del Entorno de Alta Computación
+# Curso de iniciación al HPC-CIBER
 
-BU-ISCIII
+BiPLAT-CIBERINFEC · adaptado del curso de BU-ISCIII
 
 ## Práctica 4: Acceso y transferencia de datos al clúster
 
@@ -14,15 +14,15 @@ BU-ISCIII
     - [Ejercicio 1: Conexión SSH](#ejercicio-1-conexión-ssh)
       - [Opciones de depuración](#opciones-de-depuración)
     - [Ejercicio 2: Exploración del entorno](#ejercicio-2-exploración-del-entorno)
-    - [Ejercicio 3: Configuración de clave SSH](#ejercicio-3-configuración-de-clave-ssh)
-    - [Ejercicio 4: Transferencia de datos](#ejercicio-4-transferencia-de-datos)
+    - [Ejercicio 3: Organización de proyecto](#ejercicio-3-organización-de-proyecto)
+    - [Ejercicio 4: Configuración de clave SSH](#ejercicio-4-configuración-de-clave-ssh)
+    - [Ejercicio 5: Transferencia de datos](#ejercicio-5-transferencia-de-datos)
       - [Subir archivo con `scp`](#subir-archivo-con-scp)
       - [Descargar archivo con `scp`](#descargar-archivo-con-scp)
       - [Sincronizar carpeta con `rsync`](#sincronizar-carpeta-con-rsync)
       - [Sincronizar carpeta con WinScp](#sincronizar-carpeta-con-winscp)
       - [Sincronizar carpeta con Filezilla](#sincronizar-carpeta-con-filezilla)
-    - [Ejercicio 5: Verificación de integridad](#ejercicio-5-verificación-de-integridad)
-    - [Ejercicio 6: Organización de proyecto](#ejercicio-6-organización-de-proyecto)
+    - [Ejercicio 6: Verificación de integridad](#ejercicio-6-verificación-de-integridad)
 
 ### Descripción
 
@@ -33,18 +33,18 @@ En esta práctica aprenderás a:
 - Configurar intercambio de claves SSH para no tener que introducir la contraseña en cada conexión.
 - Transferir datos entre tu equipo y el clúster utilizando diferentes herramientas (línea de comandos y programas con interfaz gráfica).
 - Verificar la integridad de los ficheros transferidos mediante checksums.
-- Construir una estructura de directorios para organizar un proyecto.
+- Construir la estructura de directorios de tu proyecto del curso en `/data-ciber`.
 
 ### Notas importantes
 
-- El acceso se realiza al nodo de login `portutatis.isciii.es` mediante el puerto `32122`.
-- No se deben ejecutar cálculos en el nodo de login, solo gestionar ficheros y enviar trabajos a la cola.
-- Los datos de usuario se organizan en diferentes espacios de trabajo:
+- Se accede al nodo de acceso del HPC-CIBER por la consola del portal de Zscaler (PRA) o por `ssh` con el cliente Zscaler (ZCC), en ambos casos a la **IP acabada en `.10`** (la completa se da en clase). La acabada en `.9` es la de administradores.
+- **En el nodo de acceso no se lanza nada.** Ahí se editan y organizan ficheros y se envían trabajos. Todo cálculo, y también las copias grandes, va con `srun` o `sbatch`.
+- Los datos se organizan en tres espacios:
 
-  - `/home/usuario` → scripts y ficheros pequeños.
-  - `/data/unidad` → datos y resultados de proyectos.
-  - `/scratch/unidad` → ejecución temporal de trabajos (se eliminan ficheros inactivos a los 5 días).
-  - `/local_scratch` → espacio temporal en cada nodo, se elimina al terminar el trabajo.
+  - `/hpcciber/home/<usuario>` → configuración y scripts personales pequeños. Poco espacio; no se analiza aquí.
+  - `/data-ciber/<área>/<proyecto>` → el proyecto: datos, scripts del análisis, documentación y resultados. Persistente. El del curso es `/data-ciber/infec/hpccourse`.
+  - `/scratch/<área>/<proyecto>` → copia de trabajo mientras calculas. Rápido, temporal y compartido por todo CIBER. El del curso es `/scratch/infec/hpccourse`. En el HPC-CIBER se puede escribir desde el nodo de acceso, pero los análisis y las copias se hacen siempre en un nodo de cómputo.
+- Flujo de trabajo: `/data-ciber` → `/scratch` (calcular) → resultados a `/data-ciber` → limpiar `/scratch`.
 - No almacenar información no relacionada con los cálculos autorizados.
 
 ### Ejercicio 1: Conexión SSH
@@ -208,16 +208,15 @@ debug1: Connecting to portutatis.isciii.es [172.21.7.100] port 22.
 debug1: connect to address 172.21.7.100 port 22: Connection refused
 ssh: connect to host portutatis.isciii.es port 22: Connection refused
 ```
-
 ### Ejercicio 2: Exploración del entorno
 
-- Ahora vamos a familiarizarnos con el nodo de acceso y los recursos disponibles del clúster. Nos conectamos al clúster con ssh de nuevo.
+- Ahora vamos a familiarizarnos con el nodo de acceso y los recursos disponibles del clúster. Entra de nuevo por la consola del PRA o por `ssh`:
 
 ```bash
-ssh -p 32122 usuario@portutatis.isciii.es
+ssh <usuario>@<IP acabada en .10>
 ```
 
-- Quienes somos y a qué grupos pertenecemos:
+- Quiénes somos y a qué grupos pertenecemos:
 
 ```bash
 whoami
@@ -225,16 +224,18 @@ id
 groups
 ```
 
-Output:
+Output (ejemplo):
 
 ```bash
-[smonzon@portutatis03 ~]$ whoami
-smonzon
-[smonzon@portutatis03 ~]$ id
-uid=1212(smonzon) gid=1212(smonzon) groups=1212(smonzon),900(fastqdata),1201(bi),1202(buisciii),2201(bi-ratb),2401(bi-bvih),2501(bi-mb),2601(bi-ips),2823(ucct),2827(bi-hel),3824(bi-bc),4010(bi-ib),5012(bi-lec),5013(it),5017(projects),5019(relecov),5020(genvigies)
-[smonzon@portutatis03 ~]$ groups
-smonzon fastqdata bi buisciii bi-ratb bi-bvih bi-mb bi-ips ucct bi-hel bi-bc bi-ib bi-lec it projects relecov genvigies
+[alumno00@<nodo-acceso> ~]$ whoami
+alumno00
+[alumno00@<nodo-acceso> ~]$ id
+uid=XXXX(alumno00) gid=XXXX(alumno00) groups=XXXX(alumno00),XXXX(hpccourse)
+[alumno00@<nodo-acceso> ~]$ groups
+alumno00 hpccourse
 ```
+
+En el HPC-CIBER **cada proyecto es un grupo**: perteneces a `hpccourse`, el grupo del proyecto del curso, y por eso puedes entrar en su carpeta. `[CONFIRMAR formato real de id y nombre del nodo de acceso]`
 
 - Carpetas disponibles en `/`
 
@@ -243,88 +244,54 @@ pwd
 ls -l /
 ```
 
-Output:
+Output (resumido):
 
 ```bash
-/home/usuario
+/hpcciber/home/alumno00
 
-drwxr-xr-x  10 root   root   4096 Jul 10 10:00 bin
+drwxr-xr-x  ...  data-ciber
+drwxr-xr-x  ...  hpcciber
+drwxr-xr-x  ...  scratch
 ...
-drwxr-xr-x   5 root root 4096 Jul 20 12:34 data
-...
-drwxr-xr-x   5 root root 4096 Jul 20 12:34 scratch
 ```
 
-El comando `pwd` muestra la ruta actual. El comando `ls -l /` permite visualizar qué directorios principales existen: `/home`, `/data`, `/scratch`, etc. Estos son los sistemas de ficheros disponibles en el clúster.
+El comando `pwd` muestra la ruta actual: tu home. `ls -l /` muestra los directorios principales; los que nos interesan son `/hpcciber` (donde está tu home), `/data-ciber` y `/scratch`.
 
-- Podemos usar el comando `df` para ver el espacio disponible en cada uno de ellos y los puntos de montaje:
+- Podemos usar el comando `df` para ver el espacio disponible en cada uno de ellos:
 
 ```bash
-df -h
+df -h /hpcciber/home /data-ciber /scratch
 ```
 
-Output:
+Output (orientativo, medido el 20/11/2026; cambia cada día):
 
 ```bash
-Filesystem                          Size  Used Avail Use% Mounted on
-tmpfs                                16G  4.4G   12G  29% /
-devtmpfs                             16G     0   16G   0% /dev
-tmpfs                                16G  571M   15G   4% /dev/shm
-tmpfs                                16G  858M   15G   6% /run
-tmpfs                                16G     0   16G   0% /sys/fs/cgroup
-172.21.17.100:/HPC_UI_ACTIVE         60T   54T  6.4T  90% /data
-172.21.31.9:/HPC_Home               200G  151G   50G  76% /home
-172.21.31.8:/HPC_UCCT_BI_ACTIVE      30T   19T   12T  61% /data/courses/hpc_course
-172.21.31.9:/HPC_Scratch            7.4T  5.4T  2.0T  74% /data/courses/hpc_course/scratch_tmp
-172.21.31.9:/HPC_Scratch            7.4T  5.4T  2.0T  74% /scratch
-//172.21.30.97/hpc-bioinfo/         1.0T  917G  108G  90% /data/courses/hpc_course/sftp
-172.21.31.9:/HPC_Soft               350G  295G   56G  85% /soft
-172.21.31.8:/HPC_UCCT_ME_ARCHIVED    42T   38T  4.2T  91% /archived/ucct/me
-172.21.31.8:/HPC_UCCT_BI_ARCHIVED    50T   37T   14T  74% /archived/ucct/bi
-172.21.31.9:/HPC_Opt                100G   15G   86G  15% /opt
-172.21.31.9:/NGS_Data_FastQ_Active   15T  8.3T  6.8T  56% /srv/fastq_repo
-//172.21.30.97/hpc-genvigies/       1.0T  429G  596G  42% /sftp/genvigies
+Filesystem          Size  Used Avail Use% Mounted on
+<servidor>:/...     1.1P   ...   ...  14% /hpcciber/home
+<servidor>:/...     1.1P   ...   ...  14% /data-ciber
+<servidor>:/...      20T   ...  8.8T  57% /scratch
 ```
 
-- Veamos por ejemplo si tenemos acceso a visualizar fastq_repo, según los permisos de los que disponemos:
+`/hpcciber/home` y `/data-ciber` están en el mismo volumen, así que `df` muestra el espacio de todo el volumen, **no tu cuota**. `/scratch` son 20 TB compartidos por todo CIBER: lo que no estés calculando, fuera.
+
+- `/data-ciber` y `/scratch` se organizan por área CIBER y, dentro, por proyecto:
 
 ```bash
-ll /srv/
+ls /data-ciber/
+ls /data-ciber/infec/
+ls -ld /data-ciber/infec/hpccourse /scratch/infec/hpccourse
 ```
 
-Output:
+Output (resumido):
 
 ```bash
-[smonzon@portutatis03 ~]$ ll /srv/
-total 40
-drwxrwx--- 191 root fastqdata 36864 Sep  2 17:12 fastq_repo
+bbn  er  es  infec  onc  resp  shared
+...  hpccourse  <otros proyectos>  ...
+drwxrws---  ...  root  hpccourse  ...  /data-ciber/infec/hpccourse
+drwxrws---  ...  root  hpccourse  ...  /scratch/infec/hpccourse
 ```
 
-> ¿Quién tiene permisos? ¿Pertenecemos a alguno de las grupos?
-
-- Podemos ver lo mismo con el contenido de fastq_repo:
-
-```bash
-ll /srv/fastq_repo
-```
-
-Output:
-
-```bash
-[smonzon@portutatis03 ~]$ ll /srv/fastq_repo/
-total 3360
-dr-xr-x--- 2 root    bi      16384 Dec 17  2024 20241213_NextSeq_GEN_495_RAbad
-dr-xr-x--- 2 root    bi       4096 Dec 17  2024 20241213_NextSeq_GEN_495_SValdezate
-dr-xr-x--- 2 root    bi      40960 Jan  3  2025 20241227_NextSeq_GEN_496_PPozo
-dr-xr-x--- 2 root    bi      12288 May 22 12:11 MiSeq_GEN_195_20210113_ICasas
-dr-xr-x--- 2 root    bi      12288 May 22 12:12 MiSeq_GEN_196_20210122_ICasas
-dr-xr-x--- 2 root    bi      12288 May 22 12:14 MiSeq_GEN_197_20210129_ICasas
-dr-xr-x--- 2 root    bi      12288 May 22 12:15 MiSeq_GEN_198_20210204_ICasas
-dr-xr-x--- 2 root    bi      16384 May 22 12:16 MiSeq_GEN_201_20210224_ICasas
-dr-xr-x--- 2 root    bi      16384 May 22 12:17 MiSeq_GEN_203_20210315_ICasas
-```
-
-- ¿Tenéis acceso a alguna de las carpetas? ¿Pertenecemos a alguno de los grupos?. Solo deberíais tener acceso si habéis secuenciado algo en vuestro grupo este último año.
+> ¿Quién tiene permisos en las carpetas del curso? ¿Pertenecemos a ese grupo? Prueba a entrar en la carpeta de otro proyecto: deberías recibir `Permission denied`. Solo ves los proyectos en los que estás dado de alta. `[CONFIRMAR permisos reales de las carpetas]`
 
 - Por último en esta sección vamos a inspeccionar nuestro `.bashrc`:
 
@@ -342,19 +309,55 @@ fi
 
 alias si="sinfo -o \"%20P %5D %14F %8z %10m %10d %11l %16f %N\""
 alias sq="squeue -o \"%8i %12j %4t %10u %20q %20a %10g %20P %10Q %5D %11l %11L %50R %10C %c\""
-alias sa="squeue -u smonzon"
-alias scratch="srun --partition short_idx --chdir /scratch/hpc_course --pty bash"
+alias sa="squeue -u $USER"
+alias scratch="srun --partition test --chdir /scratch/infec/hpccourse --pty bash"
 
-export NXF_SINGULARITY_CACHEDIR=/data/courses/hpc_course/pipelines/singularity-images
+export NXF_SINGULARITY_CACHEDIR=/data-ciber/infec/hpccourse/singularity-cache
 export LC_ALL="en_US.UTF-8"
-export R_LIBS_USER=/data/courses/hpc_course/pipelines/r-lib/
 ```
 
 El archivo .bashrc es un script de configuración que se ejecuta automáticamente cada vez que abrimos una nueva shell interactiva de Bash.
 
-Sirve para personalizar el entorno del usuario: definir variables de entorno, cargar módulos, configurar el prompt, crear alias y funciones, etc.
+Sirve para personalizar el entorno del usuario: definir variables de entorno, cargar módulos, configurar el prompt, crear alias y funciones, etc. Es de lo poco que sí va en el home.
 
-### Ejercicio 3: Configuración de clave SSH
+### Ejercicio 3: Organización de proyecto
+
+- Ahora vamos a crear la estructura de directorios de **tu** proyecto del curso, dentro del proyecto `hpccourse` de `/data-ciber`. Ahí irán tus datos, tus scripts y tus resultados durante todo el curso; el home solo para tu configuración.
+
+```bash
+mkdir -p /data-ciber/infec/hpccourse/$(date +%Y%m%d)_HPC-COURSE_${USER}/{RAW,ANALYSIS,RESULTS,DOC,TMP,REFERENCES}
+ls -R /data-ciber/infec/hpccourse/$(date +%Y%m%d)_HPC-COURSE_${USER}
+```
+
+Output:
+
+```bash
+/data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_alumno00:
+ANALYSIS  DOC  RAW  REFERENCES  RESULTS  TMP
+/data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_alumno00/ANALYSIS:
+/data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_alumno00/DOC:
+/data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_alumno00/RAW:
+/data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_alumno00/REFERENCES:
+/data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_alumno00/RESULTS:
+/data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_alumno00/TMP:
+```
+
+`mkdir` en el nodo de acceso está bien: organizar carpetas no es calcular.
+
+| Carpeta | Qué guarda |
+|---|---|
+| `RAW` | Datos de entrada tal como llegan. No se modifican. |
+| `ANALYSIS` | Una subcarpeta por práctica, con sus scripts y logs |
+| `RESULTS` | Lo que conservas al final |
+| `DOC` | Notas, versiones, decisiones |
+| `TMP` | Intermedios que se pueden borrar |
+| `REFERENCES` | Genomas, bases de datos |
+
+- Apunta la fecha del nombre de tu carpeta: la usarás en el resto de prácticas.
+
+La organización clara de los proyectos permite localizar fácilmente los datos, compartir con colaboradores y evitar problemas de almacenamiento. En el ejercicio 5 subirás tus datos directamente a `RAW`.
+
+### Ejercicio 4: Configuración de clave SSH
 
 - Ahora vamos a configurar nuestra key ssh para poder conectarnos sin necesidad de escribir contraseña en cada acceso.
 - Debemos generar la clave ssh-key desde nuestro ordenador local y copiarla a portutatis.isciii.es. Por lo tanto *salimos del HPC con `exit`*
@@ -377,7 +380,7 @@ Now try logging into the machine, with:   ssh 'usuario@portutatis.isciii.es'
 
 El comando `ssh-keygen` genera una nueva clave pública/privada en el directorio `~/.ssh/`. Con `ssh-copy-id` copiamos la clave al clúster. A partir de este momento, las conexiones SSH se autentican sin pedir la contraseña.
 
-### Ejercicio 4: Transferencia de datos
+### Ejercicio 5: Transferencia de datos
 
 - En este ejercicio vamos a tranferir archivos desde nuestro ordenador local al hpc con varias opciones: `scp`, `rsync`, WinSCP o FileZilla.
 
@@ -477,7 +480,7 @@ Resumen:
 - `rsync` sincroniza directorios y solo transfiere cambios, lo que ahorra tiempo en transferencias repetidas.
 - --WinSCP-- y --FileZilla-- ofrecen interfaz gráfica, con arrastrar y soltar. La configuración requiere: `host = portutatis.isciii.es`, `puerto = 32122`, `usuario = usuario`.
 
-### Ejercicio 5: Verificación de integridad
+### Ejercicio 6: Verificación de integridad
 
 - Ahora vamos a comprobar que los archivos no se corrompen al transferirse.
 
@@ -518,36 +521,3 @@ md5sum: WARNING: 1 computed checksum did NOT match
 
 Explicación:
 Un checksum es un valor hash generado a partir del contenido de un archivo. Si el archivo se modifica durante la transferencia, el valor no coincide y se detecta el error.
-
-### Ejercicio 6: Organización de proyecto
-
-- Por ultimo vamos a crear una estructura de directorios estándar para organizar datos.
-
-```bash
-# recordad conectarse al hpc primero
-ssh -p 32122 usuario@portutatis.isciii.es
-mkdir -p /data/courses/hpc_course/$(date +%Y%m%d)_HPC-COURSE_${USER}/{RAW,ANALYSIS,RESULTS,DOC,TMP,REFERENCES}
-ls -R /data/courses/hpc_course/$(date +%Y%m%d)_HPC-COURSE_${USER}
-```
-
-Output:
-
-```bash
-/data/courses/hpc_course/20250902_HPC-COURSE_smonzon:
-ANALYSIS  DOC  RAW  REFERENCES  RESULTS  TMP
-/data/courses/hpc_course/20250902_HPC-COURSE_smonzon/ANALYSIS:
-/data/courses/hpc_course/20250902_HPC-COURSE_smonzon/DOC:
-/data/courses/hpc_course/20250902_HPC-COURSE_smonzon/RAW:
-/data/courses/hpc_course/20250902_HPC-COURSE_smonzon/REFERENCES:
-/data/courses/hpc_course/20250902_HPC-COURSE_smonzon/RESULTS:
-/data/courses/hpc_course/20250902_HPC-COURSE_smonzon/TMP:
-```
-
-- Ahora ya podemos copiar los ficheros que hemos subido al HPC a la estructura de carpetas que hemos creado. Como son ficheros crudos de secuenciación los copiaremos en `RAW`.
-
-```bash
-cd /home/hpc_course/usuario
-rsync -rlv hpc_isciii_data/* /data/courses/hpc_course/$(date +%Y%m%d)_HPC-COURSE_${USER}/RAW
-```
-
-La organización clara de los proyectos permite localizar fácilmente los datos, compartir con colaboradores y evitar problemas de almacenamiento. Ya tenemos nuestros datos preparados para el resto de las prácticas.

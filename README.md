@@ -1,38 +1,53 @@
-# Introduction to High-Performance Computing (HPC) environment
+# Curso de iniciación al HPC-CIBER
 
-In this training course you will find theory and practice material for introducing yourself to the basics of high-performance computing (HPC) environment.
+Material de teoría y práctica para empezar a trabajar en el HPC-CIBER, el entorno de computación de alto rendimiento del CIBER-ISCIII. Lo organiza la Plataforma de Bioinformática de CIBERINFEC (BiPLAT).
 
-The material includes slides with theory concepts and practical exercises.
+Este repositorio es una adaptación al HPC-CIBER del curso [BU-ISCIII/introduction_to_hpc](https://github.com/BU-ISCIII/introduction_to_hpc), de la Unidad de Bioinformática del Instituto de Salud Carlos III, que es el repositorio original.
 
-## Slides
+## Antes de empezar: dónde va cada cosa
 
-### Day 1
+**En el nodo de acceso no se lanza nada.** Ahí editas, organizas ficheros y envías trabajos. Todo cálculo, y también las copias grandes, va con `srun` o `sbatch`.
 
-- **Talk 1:** [Introduction to High-Performance Computing and its components. Identifying problems that can be addressed using a computing cluster](slides/talk1_introduction_hpc.pdf)
-- **Talk 2:** [Introduction to the Linux environment. Using the shell and basic commands](slides/linux_intro.pdf).
-- **Exercise 1:** [Linux basic commands](exercises/01_handson_linux/handson_linux1_BasicCommands.md) -- [Download pdf](exercises/01_handson_linux/handson_linux1_BasicCommands.pdf)
+| Espacio | Para qué | En el curso |
+|---|---|---|
+| `/hpcciber/home/<usuario>` | Configuración y scripts personales pequeños. Poco espacio; no se analiza aquí. | Tu home |
+| `/data-ciber/<área>/<proyecto>` | El proyecto: datos, scripts del análisis, documentación y resultados. Persistente. | `/data-ciber/infec/hpccourse` |
+| `/scratch/<área>/<proyecto>` | Copia de trabajo mientras calculas. Rápido, temporal y compartido por todo CIBER. | `/scratch/infec/hpccourse` |
 
-### Day 2
+Flujo de trabajo: **/data-ciber → /scratch (calcular) → resultados a /data-ciber → limpiar /scratch**.
 
-- **Exercise 2:** [Filesystem](exercises/01_handson_linux/handson_linux2_FileProcessing.md) -- [Download pdf](exercises/01_handson_linux/handson_linux2_FileProcessing.pdf)
-- **Exercise 3:** [Users and privileges](exercises/01_handson_linux/handson_linux3_Privileges.md) -- [Download pdf](exercises/01_handson_linux/handson_linux3_Privileges.pdf)
-- **Talk 3:** [Accessing, connecting to, and transferring data to an HPC environment](slides/talk3_access_connection_datatransfer.pdf)
-- **Exercise 4:** [Accessing, connecting to, and transferring data to an HPC environment](exercises/04_access/handson_access.md) -- [Download pdf](exercises/xxx.pdf)
+**Acceso:** consola del portal de Zscaler (PRA) en la IP acabada en `.10` (la completa se da en clase); como segunda opción, MobaXterm (versión instalable) con el cliente Zscaler.
 
-### Day 3
+## Programa
 
-- **Talk 4:** [Running processes using a job scheduler (Slurm). Resource reservation, working directories, and genomic data storage protocols](slides/talk4_filesystems_slurm.pdf)
-- **Exercise 5:** [Running processes using a job scheduler (Slurm). Resource reservation, working directories, and genomic data storage protocols](exercises/05_srun/handson_srun.md) -- [Download pdf](exercises/xxx.pdf)
-- **Talk 5:** [Software installation in HPC. EasyBuild, Conda, Mamba. Introduction to container usage in HPC.](slides/talk5_SoftwareManagement_and_ContainersinHPC.pdf)
-- **Exercise 6:** [Software installation in HPC. EasyBuild, Conda, Mamba. Introduction to container usage in HPC](exercises/06_software_management_hpc/handson_software_management.md) -- [Download pdf](exercises/xxxx.pdf)
-  
-### Day 4
+### Sesión 1 · Infraestructura HPC y fundamentos de Linux
 
-- **Talk 6:** [Scripting and parallelization](slides/talk6_Scripting_and_Parallelization.pdf)
-- **Exercise 7:** [Scripting and parallelization](exercises/07_handson_scripting_and_parallelization/handson_scripting_and_parallelization.md)
-- **Talk 7:** [Building a reliable and reproducible scientific workflow using Nextflow](slides/talk7_ReliableReproducible_ScientificWorkflows_Nextflow.pdf)
-- **Exercise 8:** [Building a reliable and reproducible scientific workflow using Nextflow](exercises/08_handson_scientific_workflows_nextflow/handson_scientificworkflows_nextflow.md)
+- **Teoría:** [Introducción al HPC y sus componentes](slides/talk1_introduction_hpc.pdf) · [Introducción a Linux](slides/linux_intro.pdf)
+- **Práctica 1:** [Comandos básicos de Linux](exercises/01_handson_linux/handson_linux1_BasicCommands.md)
+- **Práctica 2:** [Manejo de ficheros](exercises/01_handson_linux/handson_linux2_FileProcessing.md)
+- **Práctica 3:** [Usuarios y permisos](exercises/01_handson_linux/handson_linux3_Privileges.md)
 
-### Day 5
+### Sesión 2 · Conexión, transferencia de datos y SLURM
 
-- **Exercise 9:** [Practical cases and common issue](exercises/09_usecase_issues/handson_usecase_issues1.md) -- [Download pdf](exercises/xxx.pdf)
+- **Teoría:** [Acceso, conexión y transferencia de datos](slides/talk3_access_connection_datatransfer.pdf) · [SLURM y directorios de trabajo](slides/talk4_filesystems_slurm.pdf)
+- **Práctica 4:** [Acceso, estructura del proyecto y transferencia de datos](exercises/04_access/handson_access.md)
+- **Práctica 5:** [Reservar recursos con srun](exercises/05_srun/handson_srun.md)
+
+### Sesión 3 · Instalación de software: módulos, micromamba y contenedores
+
+- **Teoría:** [Gestión de software y contenedores](slides/talk5_SoftwareManagement_and_ContainersinHPC.pdf)
+- **Práctica 6:** [Gestión de software](exercises/06_software_management_hpc/handson_software_management.md)
+
+### Sesión 4 · Scripting, paralelización e introducción a Nextflow
+
+- **Teoría:** [Scripting y paralelización](slides/talk6_Scripting_and_Parallelization.pdf) · [Flujos reproducibles con Nextflow](slides/talk7_ReliableReproducible_ScientificWorkflows_Nextflow.pdf)
+- **Práctica 7:** [Scripting y paralelización](exercises/07_handson_scripting_and_parallelization/handson_scripting_and_parallelization.md)
+- **Práctica 8:** [Flujos con Nextflow](exercises/08_handson_scientific_workflows_nextflow/handson_scientificworkflows_nextflow.md)
+
+### Sesión 5 · Monitorización, diagnóstico y resolución de incidencias
+
+- **Práctica 9:** [Casos prácticos y problemas habituales](exercises/09_usecase_issues/handson_usecase_issues1.md)
+
+## Licencia
+
+[GPL-3.0](LICENSE), la misma que el repositorio original.
