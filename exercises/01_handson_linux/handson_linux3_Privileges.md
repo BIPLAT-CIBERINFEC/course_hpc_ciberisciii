@@ -86,13 +86,13 @@ ll #o ls -l
 
 #### 4. Cambiar el grupo
 
-1. Cambiar el grupo de los ficheros que empiece por `ho` al grupo del proyecto del curso (búscalo con `id`)
+1. Cambiar el grupo de los ficheros que empiece por `ho` al grupo del proyecto del curso, `hpccourse` (compruébalo con `id`)
 2. Listar el contenido y visualizar para ver los cambios.
 
 ```bash
 pwd
 id                       # en el HPC-CIBER cada proyecto es un grupo
-chgrp <grupo_curso_hpc> ho*   # [CONFIRMAR nombre del grupo del proyecto curso_hpc]
+chgrp hpccourse ho*
 ll #o ls -l
 ```
 

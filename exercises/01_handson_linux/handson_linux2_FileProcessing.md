@@ -44,7 +44,7 @@ wget https://plantgenomics.es/edu/linux/_downloads/9bce0e4eba7e74591baab487df7ca
 
 `wget` es un comando que nos permite obtener un archivo a partir de una URL de internet y nos lo descarga.
 
-> Si el nodo de acceso no tiene salida a internet, copia el fichero que ha dejado el profesor: `cp /data-ciber/infec/curso_hpc/datos_prueba/microarray_adenoma_hk69.csv .` `[CONFIRMAR salida a internet desde el nodo de acceso]`
+> Si el nodo de acceso no tiene salida a internet, copia el fichero que ha dejado el profesor: `cp /data-ciber/infec/hpccourse/datos_prueba/microarray_adenoma_hk69.csv .` `[CONFIRMAR salida a internet desde el nodo de acceso]`
 
 #### 2. Leer el contenido de un archivo
 
