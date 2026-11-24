@@ -1,6 +1,6 @@
-# Curso Práctico de Iniciación al uso del Entorno de Alta Computación
+# Curso de iniciación al HPC-CIBER
 
-BU-ISCIII
+BiPLAT-CIBERINFEC · adaptado del curso de BU-ISCIII
 
 ## Práctica 2: Manejo y gestión de ficheros
 
@@ -43,6 +43,8 @@ wget https://plantgenomics.es/edu/linux/_downloads/9bce0e4eba7e74591baab487df7ca
 ```
 
 `wget` es un comando que nos permite obtener un archivo a partir de una URL de internet y nos lo descarga.
+
+> Si el nodo de acceso no tiene salida a internet, copia el fichero que ha dejado el profesor: `cp /data-ciber/infec/curso_hpc/datos_prueba/microarray_adenoma_hk69.csv .` `[CONFIRMAR salida a internet desde el nodo de acceso]`
 
 #### 2. Leer el contenido de un archivo
 
@@ -169,7 +171,7 @@ head microarray_adenoma_hk69.csv | sort -k1 -r | sed "s/;//g"
 
 1) Saber cuál es la expresión de los genes relacionados con la leucemia en el fichero del microarray. Para ello buscaremos en el archivo las líneas que contienen leukemia ignorando diferencias entre mayúsculas y minúsculas. Si las líneas que coinciden con el patrón son muchas, usar una tubería ( | ) y pasar la salida del comando grep como entrada al comando less o more.
 
-2) Buscar la palabra leukemia en todos los ficheros presentes el directorio home (/home/usuario).
+2) Buscar la palabra leukemia en todos los ficheros presentes el directorio home (/hpcciber/home/usuario).
 
 3) ¿Qué posiciones del fichero están las líneas que cumplen con el patrón leukemia?
 

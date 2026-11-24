@@ -1,6 +1,6 @@
-# Curso Práctico de Iniciación al uso del Entorno de Alta Computación
+# Curso de iniciación al HPC-CIBER
 
-BU-ISCIII
+BiPLAT-CIBERINFEC · adaptado del curso de BU-ISCIII
 
 ## Práctica 3: Usuarios y permisos
 
@@ -86,12 +86,13 @@ ll #o ls -l
 
 #### 4. Cambiar el grupo
 
-1. Cambiar el grupo de los ficheros que empiece por `ho` al grupo `hpccourse`
+1. Cambiar el grupo de los ficheros que empiece por `ho` al grupo del proyecto del curso (búscalo con `id`)
 2. Listar el contenido y visualizar para ver los cambios.
 
 ```bash
 pwd
-chgrp hpccourse ho*
+id                       # en el HPC-CIBER cada proyecto es un grupo
+chgrp <grupo_curso_hpc> ho*   # [CONFIRMAR nombre del grupo del proyecto curso_hpc]
 ll #o ls -l
 ```
 

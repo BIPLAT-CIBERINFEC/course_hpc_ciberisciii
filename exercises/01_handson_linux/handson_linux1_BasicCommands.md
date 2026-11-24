@@ -1,6 +1,6 @@
-# Curso Práctico de Iniciación al uso del Entorno de Alta Computación
+# Curso de iniciación al HPC-CIBER
 
-BU-ISCIII
+BiPLAT-CIBERINFEC · adaptado del curso de BU-ISCIII
 
 ## Práctica 1: Comandos básicos de Linux
 
@@ -35,7 +35,7 @@ BU-ISCIII
 
 ### Preparación de MobaXterm
 
-Si utilizas MobaXterm en Windows, abre una terminal local de MobaXterm y ejecuta el siguiente comando antes de comenzar la práctica para instalar las herramientas necesarias:
+Si utilizas MobaXterm en Windows (opción 2 de acceso), abre una terminal local de MobaXterm y ejecuta el siguiente comando antes de comenzar la práctica para instalar las herramientas necesarias:
 
 ```bash
 apt-get install coreutils wget tar xz cpio nc sed findutils jq unzip
@@ -75,25 +75,16 @@ El objetivo es realizar, desde la línea de comandos, aquellas tareas cotidianas
 
 > Nota: En [este archivo](./esquema_practica_comandos.pdf) hay un esquema con los cambios en las rutas que se van realizando a lo largo de la práctica.
 
-Abrimos una terminal en nuestro ordenador. En Linux se puede pulsar `Ctrl + Alt + T` para abrir una terminal. En windows podemos utilizar abrir una powershell para poder usar comandos de terminal de windows, o también tenemos acceso a un subsistema de linux integrado, el WSL. Este WSL podemos usarlo directamente buscando `Ubuntu` en nuestras aplicaciones, o bien a través de MobaXterm y su terminal. En MobaXterm le damos a "Start local terminal" y se nos abre un nuevo terminal.
+Hay dos formas de abrir una terminal en el HPC-CIBER:
 
-En estas prácticas vamos a usar WSL
-
-1. Abrir terminal en WSL/Ubuntu.
-
-<details>
-<summary>PREGUNTA: ¿Qué información nos muestra el prompt?</summary>
-
-En azul nos muestra la fecha actual. Después en verde la hora y después en amarillo la ubicación donde nos encontramos.
-</details>
-
-Para poder conectarte al Entorno de Alta Computación (HPC) del ISCIII tienes que ejecutar el siguiente comando en la terminal que se explicará más adelante:
-
-> Nota: Tienes que estar conectado a la red "ISCIII" o a la VPN para poder acceder al HPC. No sirven las redes de Invitado ni eduroam.
+1. **Consola del portal de Zscaler (PRA), la que usaremos en el curso.** Entra en el portal con tu correo corporativo y pulsa sobre la consola del servidor de usuarios: **la IP acabada en `.10`**. La IP completa se da en clase y está en la Guía de Conexión Remota. La acabada en `.9` es la de administradores: no la uses. Te pedirá tu usuario y contraseña del HPC.
+2. **MobaXterm (versión instalable) con el cliente Zscaler (ZCC) conectado.** Útil si vas a trabajar a menudo: gestiona varias terminales y tiene un explorador de ficheros. Si ya tienes la [terminal local de MobaXterm preparada](#preparación-de-mobaxterm), conéctate al nodo de acceso con:
 
 ```bash
-ssh -p 32122 <usuario>@portutatis.isciii.es
+ssh <usuario>@<IP acabada en .10>
 ```
+
+> Nota: son **dos usuarios distintos**: uno para Zscaler (tu correo corporativo) y otro para el HPC. En la consola y en `ssh` va siempre el del HPC.
 
 ⚠️ Es importante que antes de escribir nada en el terminal compruebes los siguientes pasos: 
 
@@ -103,9 +94,9 @@ ssh -p 32122 <usuario>@portutatis.isciii.es
 - Si nos sale una ventana para guardar el password, le damos a no.
 
 <details>
-<summary>PREGUNTA: ¿Qué información nos muestra el prompt una vez conectados al HPC??</summary>
+<summary>PREGUNTA: ¿Qué información nos muestra el prompt una vez conectados al HPC?</summary>
 
-Entre corchetes `[]` te proporciona primero tu usuario, después el `@`, seguido el nombre de la máquina a la que estás conectado, en el HPC es el nodo de acceso que se llama portutatis03. Finalmente se muestra la ruta en la que te encuentres en ese momento, que cuando accedes al HPC es el home de tu usuario `/home/<nombre de usuario`, que se abrebia con el simobolo de `~`. Fuera de los corchetes te mostrará los permisos con los que estás conectado, que en el HPC es `$`, sin permisos de administrador.
+Entre corchetes `[]` aparece primero tu usuario, después la `@` y el nombre del nodo de acceso al que estás conectado `[CONFIRMAR nombre del nodo de acceso con hostname]`. Después, la carpeta en la que te encuentras: al entrar es tu home, `/hpcciber/home/<usuario>`, que se abrevia con `~`. Fuera de los corchetes, `$` indica que no tienes permisos de administrador.
 </details>
 
 #### 1. Muestra tu directorio de trabajo actual
@@ -117,7 +108,7 @@ pwd
 <details>
 <summary>PREGUNTA: ¿En qué directorio te encuentras?</summary>
 
-`/home/<usuario>`. Siempre que te conectes al HPC el directorio al que entras por defecto es el directorio personal de tu usuario, que SIEMPRE se encuentra en la ruta `/home/<tu nombre de usuario>`.
+`/hpcciber/home/<usuario>`. Siempre que te conectes al HPC el directorio al que entras por defecto es el directorio personal de tu usuario, que SIEMPRE se encuentra en la ruta `/hpcciber/home/<tu nombre de usuario>`.
 </details>
 
 <details>
@@ -130,11 +121,11 @@ El comando `pwd` muestra una ruta absoluta.
 
 #### 2. Listar los archivos de tu carpeta actual
 
-1. Lista el contenido del directorio de tu home (`/home/usuario`).
-2. Lista el contenido del directorio de tu home (`/home/usuario`) en formato largo
-3. Lista el contenido del directorio de tu home (`/home/usuario`) mostrando los archivos ocultos
-4. Lista el contenido del directorio de tu home (`/home/usuario`) mostrando los archivos ocultos y en formato largo separando los parámetros.
-5. Lista el contenido del directorio de tu home (`/home/usuario`) mostrando los archivos ocultos y en formato largo juntando los parámetros.
+1. Lista el contenido del directorio de tu home (`/hpcciber/home/usuario`).
+2. Lista el contenido del directorio de tu home (`/hpcciber/home/usuario`) en formato largo
+3. Lista el contenido del directorio de tu home (`/hpcciber/home/usuario`) mostrando los archivos ocultos
+4. Lista el contenido del directorio de tu home (`/hpcciber/home/usuario`) mostrando los archivos ocultos y en formato largo separando los parámetros.
+5. Lista el contenido del directorio de tu home (`/hpcciber/home/usuario`) mostrando los archivos ocultos y en formato largo juntando los parámetros.
 
 ```bash
 pwd
@@ -204,7 +195,7 @@ No deberia contener nada porque la has creado vacía.
 
 1. Desde `practica_comandos` crear 2 directorios, uno se llamara ‘dir1’ y el otro ‘dir2’
 2. Acceder dentro del directorio `dir1` y crear dos archivos de ‘texto’ vacios, uno llamado `archivo1.txt` y otro llamado `archivo2.txt`.
-3. Volver al directorio de inicio (/home/alumno)
+3. Volver al directorio de inicio (/hpcciber/home/<usuario>)
 
 ```bash
 ls
@@ -227,11 +218,11 @@ Vemos que tanto `>` como `touch` permiten crear archivos que antes no estaban.
 <details>
 <summary>PREGUNTA: ¿Cuál sería el path absoluto al archivo <code class="code-inline">archivo1.txt</code> que acabas de crear?</summary>
 
-`/home/<usuario>/practica_comandos/dir1/archivo1.txt`
+`/hpcciber/home/<usuario>/practica_comandos/dir1/archivo1.txt`
 </details>
 
 <details>
-<summary>PREGUNTA: ¿Y el path relativo a la carpeta en la que te encuetras actualmente (<code class="code-inline">/home/usuario</code>)?</summary>
+<summary>PREGUNTA: ¿Y el path relativo a la carpeta en la que te encuetras actualmente (<code class="code-inline">/hpcciber/home/usuario</code>)?</summary>
 
 `./practica_comandos/dir1/archivo1.txt` o `practica_comandos/dir1/archivo1.txt`
 </details>
@@ -243,13 +234,13 @@ Con los comandos:
 
 Ruta relativa: `touch practica_comandos/dir1/archivo1.txt` o `> practica_comandos/dir1/archivo1.txt`
 
-Ruta absoluta: `touch /home/<usuario>/practica_comandos/dir1/archivo1.txt` o `> /home/<usuario>/practica_comandos/dir1/archivo1.txt`
+Ruta absoluta: `touch /hpcciber/home/<usuario>/practica_comandos/dir1/archivo1.txt` o `> /hpcciber/home/<usuario>/practica_comandos/dir1/archivo1.txt`
 </details>
 
 <details>
 <summary>PREGUNTA: ¿Que hace el comando <code class="code-inline">cd</code> sin argumento?</summary>
 
-Te mueve al directorio de tu home ubicado siempre en `/home/<tu nombre de usuario>`
+Te mueve al directorio de tu home ubicado siempre en `/hpcciber/home/<tu nombre de usuario>`
 </details>
 
 #### 6. Modificar y visualizar el contenido de los archivos
@@ -376,8 +367,8 @@ A los comandos que requieren archivos o directorios como argumentos, se les pued
 <details>
 <summary>PREGUNTA: ¿Cuál es la ruta ABSOLUTA a los archivos <code class="code-inline">archivo_copiado1.txt</code> y <code class="code-inline">archivo_copiado2.txt</code>?</summary>
 
-`archivo_copiado1.txt`: `/home/<nombre usuario>/practica_comandos/dir1/archivo_copiado1.txt`
-`archivo_copiado2.txt`: `/home/<nombre usuario>/practica_comandos/dir2/archivo_copiado2.txt`
+`archivo_copiado1.txt`: `/hpcciber/home/<nombre usuario>/practica_comandos/dir1/archivo_copiado1.txt`
+`archivo_copiado2.txt`: `/hpcciber/home/<nombre usuario>/practica_comandos/dir2/archivo_copiado2.txt`
 </details>
 
 <details>
