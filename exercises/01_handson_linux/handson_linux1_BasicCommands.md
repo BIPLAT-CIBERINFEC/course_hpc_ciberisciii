@@ -96,7 +96,7 @@ ssh <usuario>@<IP acabada en .10>
 <details>
 <summary>PREGUNTA: ¿Qué información nos muestra el prompt una vez conectados al HPC?</summary>
 
-Entre corchetes `[]` aparece primero tu usuario, después la `@` y el nombre del nodo de acceso al que estás conectado `[CONFIRMAR nombre del nodo de acceso con hostname]`. Después, la carpeta en la que te encuentras: al entrar es tu home, `/hpcciber/home/<usuario>`, que se abrevia con `~`. Fuera de los corchetes, `$` indica que no tienes permisos de administrador.
+Entre corchetes `[]` aparece primero tu usuario, después la `@` y el nombre del nodo de acceso al que estás conectado, `login01`. Después, la carpeta en la que te encuentras: al entrar es tu home, `/hpcciber/home/<usuario>`, que se abrevia con `~`. Fuera de los corchetes, `$` indica que no tienes permisos de administrador.
 </details>
 
 #### 1. Muestra tu directorio de trabajo actual

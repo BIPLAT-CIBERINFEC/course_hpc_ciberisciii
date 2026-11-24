@@ -6,7 +6,7 @@ BiPLAT-CIBERINFEC · adaptado del curso de BU-ISCIII
 
 ## Índice
 
-- [Curso Práctico de Iniciación al uso del Entorno de Alta Computación](#curso-práctico-de-iniciación-al-uso-del-entorno-de-alta-computación)
+- [Curso de iniciación al HPC-CIBER](#curso-de-iniciación-al-hpc-ciber)
   - [Práctica 4: Acceso y transferencia de datos al clúster](#práctica-4-acceso-y-transferencia-de-datos-al-clúster)
   - [Índice](#índice)
     - [Descripción](#descripción)
@@ -17,11 +17,12 @@ BiPLAT-CIBERINFEC · adaptado del curso de BU-ISCIII
     - [Ejercicio 3: Organización de proyecto](#ejercicio-3-organización-de-proyecto)
     - [Ejercicio 4: Configuración de clave SSH](#ejercicio-4-configuración-de-clave-ssh)
     - [Ejercicio 5: Transferencia de datos](#ejercicio-5-transferencia-de-datos)
-      - [Subir archivo con `scp`](#subir-archivo-con-scp)
-      - [Descargar archivo con `scp`](#descargar-archivo-con-scp)
-      - [Sincronizar carpeta con `rsync`](#sincronizar-carpeta-con-rsync)
-      - [Sincronizar carpeta con WinScp](#sincronizar-carpeta-con-winscp)
-      - [Sincronizar carpeta con Filezilla](#sincronizar-carpeta-con-filezilla)
+      - [Descargar los datos de la práctica en tu ordenador](#descargar-los-datos-de-la-práctica-en-tu-ordenador)
+      - [Subir archivos con `scp`](#subir-archivos-con-scp)
+      - [Descargar un archivo con `scp`](#descargar-un-archivo-con-scp)
+      - [Sincronizar una carpeta con `rsync`](#sincronizar-una-carpeta-con-rsync)
+      - [Copiar los datos del curso dentro del HPC con `srun rsync`](#copiar-los-datos-del-curso-dentro-del-hpc-con-srun-rsync)
+      - [Sincronizar una carpeta con MobaXterm, WinSCP o FileZilla](#sincronizar-una-carpeta-con-mobaxterm-winscp-o-filezilla)
     - [Ejercicio 6: Verificación de integridad](#ejercicio-6-verificación-de-integridad)
 
 ### Descripción
@@ -30,7 +31,7 @@ En esta práctica aprenderás a:
 
 - Conectarte al clúster HPC usando SSH.
 - Explorar el entorno de trabajo.
-- Configurar intercambio de claves SSH para no tener que introducir la contraseña en cada conexión.
+- Configurar intercambio de claves SSH para no tener que introducir la contraseña en cada conexión (si el HPC-CIBER lo permite).
 - Transferir datos entre tu equipo y el clúster utilizando diferentes herramientas (línea de comandos y programas con interfaz gráfica).
 - Verificar la integridad de los ficheros transferidos mediante checksums.
 - Construir la estructura de directorios de tu proyecto del curso en `/data-ciber`.
@@ -49,165 +50,58 @@ En esta práctica aprenderás a:
 
 ### Ejercicio 1: Conexión SSH
 
-- Lo primero que vamos a hacer es conectarnos al clúster con nuestras credenciales personales.
+- Lo primero que vamos a hacer es conectarnos al clúster con nuestras credenciales del HPC (no las de Zscaler: son **dos usuarios distintos**).
+
+**Opción 1 (la del curso): consola del portal de Zscaler (PRA).** Entra en el portal con tu correo corporativo y pulsa sobre la consola del servidor de usuarios, la **IP acabada en `.10`**. Te pedirá el usuario y la contraseña del HPC.
+
+**Opción 2: `ssh` desde tu equipo**, con el cliente Zscaler (ZCC) en estado «Authenticated». En Windows, desde la terminal local de MobaXterm (versión instalable); en Linux o macOS, desde la terminal del sistema. La IP completa se da en clase:
 
 ```bash
-ssh -p 32122 usuario@portutatis.isciii.es
+ssh <usuario>@<IP acabada en .10>
 exit
 ```
 
 Output:
 
 ```bash
-usuario@portutatis.isciii.es's password:
-Last login: Tue Aug 20 10:21:45 2025 from 192.168.1.10
-[usuario@portutatis ~]$
+<usuario>@<IP acabada en .10>'s password:
+Last login: ...
+[<usuario>@login01 ~]$
 ```
 
-El sistema solicita la contraseña del usuario. Tras introducirla, accedemos al nodo de login, donde aparece el `prompt` con nuestro nombre de usuario y la ruta `~` que corresponde al directorio `/home/usuario`.
+El sistema solicita la contraseña del usuario (no se ve al escribirla). Tras introducirla, accedemos al nodo de acceso, `login01`, donde aparece el `prompt` con nuestro nombre de usuario y la ruta.
 
 #### Opciones de depuración
 
-Si la conexión falla, podemos añadir opciones de depuración:
+Si la conexión por `ssh` falla, podemos añadir opciones de depuración:
 
 - **Modo detallado (-v):**
 
 ```bash
-exit
-ssh -v -p 32122 usuario@portutatis.isciii.es
+ssh -v <usuario>@<IP acabada en .10>
 exit
 ```
 
-Muestra información sobre cada paso de la conexión SSH. Útil para identificar problemas de autenticación.
-
-Output:
+Muestra información sobre cada paso de la conexión SSH. Útil para identificar problemas de autenticación. Fíjate en las últimas líneas:
 
 ```bash
- ✘  smonzon@PC-M007021  ssh -v -p 32122 smonzon@portutatis.isciii.es
-OpenSSH_9.6p1 Ubuntu-3ubuntu13.13, OpenSSL 3.0.13 30 Jan 2024
-debug1: Reading configuration data /home/smonzon/.ssh/config
-debug1: /home/smonzon/.ssh/config line 16: Applying options for portutatis.isciii.es
-debug1: Reading configuration data /etc/ssh/ssh_config
-debug1: /etc/ssh/ssh_config line 19: include /etc/ssh/ssh_config.d/*.conf matched no files
-debug1: /etc/ssh/ssh_config line 21: Applying options for *
-debug1: Connecting to portutatis.isciii.es [172.21.7.100] port 32122.
-debug1: Connection established.
-debug1: identity file /home/smonzon/.ssh/id_rsa type -1
-debug1: identity file /home/smonzon/.ssh/id_rsa-cert type -1
-debug1: identity file /home/smonzon/.ssh/id_ecdsa type -1
-debug1: identity file /home/smonzon/.ssh/id_ecdsa-cert type -1
-debug1: identity file /home/smonzon/.ssh/id_ecdsa_sk type -1
-debug1: identity file /home/smonzon/.ssh/id_ecdsa_sk-cert type -1
-debug1: identity file /home/smonzon/.ssh/id_ed25519 type 3
-debug1: identity file /home/smonzon/.ssh/id_ed25519-cert type -1
-debug1: identity file /home/smonzon/.ssh/id_ed25519_sk type -1
-debug1: identity file /home/smonzon/.ssh/id_ed25519_sk-cert type -1
-debug1: identity file /home/smonzon/.ssh/id_xmss type -1
-debug1: identity file /home/smonzon/.ssh/id_xmss-cert type -1
-debug1: identity file /home/smonzon/.ssh/id_dsa type -1
-debug1: identity file /home/smonzon/.ssh/id_dsa-cert type -1
-debug1: Local version string SSH-2.0-OpenSSH_9.6p1 Ubuntu-3ubuntu13.13
-debug1: Remote protocol version 2.0, remote software version OpenSSH_8.0
-debug1: compat_banner: match: OpenSSH_8.0 pat OpenSSH* compat 0x04000000
-debug1: Authenticating to portutatis.isciii.es:32122 as 'smonzon'
-debug1: load_hostkeys: fopen /home/smonzon/.ssh/known_hosts2: No such file or directory
-debug1: load_hostkeys: fopen /etc/ssh/ssh_known_hosts: No such file or directory
-debug1: load_hostkeys: fopen /etc/ssh/ssh_known_hosts2: No such file or directory
-debug1: SSH2_MSG_KEXINIT sent
-debug1: SSH2_MSG_KEXINIT received
-debug1: kex: algorithm: curve25519-sha256
-debug1: kex: host key algorithm: ssh-ed25519
-debug1: kex: server->client cipher: chacha20-poly1305@openssh.com MAC: <implicit> compression: none
-debug1: kex: client->server cipher: chacha20-poly1305@openssh.com MAC: <implicit> compression: none
-debug1: expecting SSH2_MSG_KEX_ECDH_REPLY
-debug1: SSH2_MSG_KEX_ECDH_REPLY received
-debug1: Server host key: ssh-ed25519 SHA256:J+mEtn68NKuPOhGTtFiJBdEgnALrlYJH4B5q40P3vBY
-debug1: load_hostkeys: fopen /home/smonzon/.ssh/known_hosts2: No such file or directory
-debug1: load_hostkeys: fopen /etc/ssh/ssh_known_hosts: No such file or directory
-debug1: load_hostkeys: fopen /etc/ssh/ssh_known_hosts2: No such file or directory
-debug1: Host '[portutatis.isciii.es]:32122' is known and matches the ED25519 host key.
-debug1: Found key in /home/smonzon/.ssh/known_hosts:56
-debug1: ssh_packet_send2_wrapped: resetting send seqnr 3
-debug1: rekey out after 134217728 blocks
-debug1: SSH2_MSG_NEWKEYS sent
-debug1: expecting SSH2_MSG_NEWKEYS
-debug1: ssh_packet_read_poll2: resetting read seqnr 3
-debug1: SSH2_MSG_NEWKEYS received
-debug1: rekey in after 134217728 blocks
-debug1: SSH2_MSG_EXT_INFO received
-debug1: kex_ext_info_client_parse: server-sig-algs=<ssh-ed25519,ssh-rsa,rsa-sha2-256,rsa-sha2-512,ssh-dss,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521>
-debug1: SSH2_MSG_SERVICE_ACCEPT received
-debug1: Authentications that can continue: publickey,gssapi-keyex,gssapi-with-mic,password
-debug1: Next authentication method: gssapi-with-mic
-debug1: No credentials were supplied, or the credentials were unavailable or inaccessible
-No Kerberos credentials available (default cache: FILE:/tmp/krb5cc_1212)
-debug1: No credentials were supplied, or the credentials were unavailable or inaccessible
-No Kerberos credentials available (default cache: FILE:/tmp/krb5cc_1212)
-debug1: Next authentication method: publickey
-debug1: Will attempt key: /home/smonzon/.ssh/id_rsa
-debug1: Will attempt key: /home/smonzon/.ssh/id_ecdsa
-debug1: Will attempt key: /home/smonzon/.ssh/id_ecdsa_sk
-debug1: Will attempt key: /home/smonzon/.ssh/id_ed25519 ED25519 SHA256:mwmdFtDTXOXTChh+RKun1e9igQ3jt6ldU7Gd/XaALpk
-debug1: Will attempt key: /home/smonzon/.ssh/id_ed25519_sk
-debug1: Will attempt key: /home/smonzon/.ssh/id_xmss
-debug1: Will attempt key: /home/smonzon/.ssh/id_dsa
-debug1: Trying private key: /home/smonzon/.ssh/id_rsa
-debug1: Trying private key: /home/smonzon/.ssh/id_ecdsa
-debug1: Trying private key: /home/smonzon/.ssh/id_ecdsa_sk
-debug1: Offering public key: /home/smonzon/.ssh/id_ed25519 ED25519 SHA256:mwmdFtDTXOXTChh+RKun1e9igQ3jt6ldU7Gd/XaALpk
-debug1: Authentications that can continue: publickey,gssapi-keyex,gssapi-with-mic,password
-debug1: Trying private key: /home/smonzon/.ssh/id_ed25519_sk
-debug1: Trying private key: /home/smonzon/.ssh/id_xmss
-debug1: Trying private key: /home/smonzon/.ssh/id_dsa
-debug1: Next authentication method: password
-smonzon@portutatis.isciii.es's password:
-debug1: Authentications that can continue: publickey,gssapi-keyex,gssapi-with-mic,password
+debug1: Connecting to <IP acabada en .10> port 22.
+...
+<usuario>@<IP acabada en .10>'s password:
 Permission denied, please try again.
-smonzon@portutatis.isciii.es's password:
-Authenticated to portutatis.isciii.es ([172.21.7.100]:32122) using "password".
-debug1: channel 0: new session [client-session] (inactive timeout: 0)
-debug1: Requesting no-more-sessions@openssh.com
-debug1: Entering interactive session.
-debug1: pledge: filesystem
-debug1: client_input_global_request: rtype hostkeys-00@openssh.com want_reply 0
-debug1: client_input_hostkeys: searching /home/smonzon/.ssh/known_hosts for [portutatis.isciii.es]:32122 / (none)
-debug1: client_input_hostkeys: searching /home/smonzon/.ssh/known_hosts2 for [portutatis.isciii.es]:32122 / (none)
-debug1: client_input_hostkeys: hostkeys file /home/smonzon/.ssh/known_hosts2 does not exist
-debug1: client_input_hostkeys: host key found matching a different name/address, skipping UserKnownHostsFile update
-debug1: pledge: fork
-Last failed login: Tue Sep  2 16:28:14 CEST 2025 from 10.22.140.230 on ssh:notty
-There was 1 failed login attempt since the last successful login.
-Last login: Tue Sep  2 16:27:50 2025 from 10.22.140.230
 ```
 
-- **Modo muy detallado (-vv o -vvv):**
+- **Modo muy detallado (-vv o -vvv):** muestra aún más detalles, incluido el intercambio de claves. Útil cuando el problema es la clave pública o el *fingerprint*.
 
-```bash
-ssh -vvv -p 32122 usuario@portutatis.isciii.es
-exit
-```
+- **Errores típicos en el HPC-CIBER:**
 
-Muestra aún más detalles, incluyendo el intercambio de claves. Útil cuando el problema es con la clave pública o el fingerprint.
+| Mensaje | Causa probable |
+|---|---|
+| `Connection timed out` | El cliente Zscaler (ZCC) no está conectado o no está «Authenticated» |
+| `Permission denied` | Contraseña incorrecta o has usado el usuario de Zscaler en lugar del del HPC |
+| `Could not resolve hostname` / `No route to host` | IP mal escrita |
+| `Host key verification failed` | Ha cambiado la huella del servidor: avisa al soporte antes de borrar nada en `~/.ssh/known_hosts` |
 
-- **Probar conexión sin especificar puerto:**
-
-```bash
-ssh -v usuario@portutatis.isciii.es
-exit
-```
-
-Output:
-
-```bash
-OpenSSH_9.6p1 Ubuntu-3ubuntu13.13, OpenSSL 3.0.13 30 Jan 2024
-debug1: Reading configuration data /home/smonzon/.ssh/config
-debug1: Reading configuration data /etc/ssh/ssh_config
-debug1: /etc/ssh/ssh_config line 19: include /etc/ssh/ssh_config.d/*.conf matched no files
-debug1: /etc/ssh/ssh_config line 21: Applying options for *
-debug1: Connecting to portutatis.isciii.es [172.21.7.100] port 22.
-debug1: connect to address 172.21.7.100 port 22: Connection refused
-ssh: connect to host portutatis.isciii.es port 22: Connection refused
-```
 ### Ejercicio 2: Exploración del entorno
 
 - Ahora vamos a familiarizarnos con el nodo de acceso y los recursos disponibles del clúster. Entra de nuevo por la consola del PRA o por `ssh`:
@@ -227,15 +121,15 @@ groups
 Output (ejemplo):
 
 ```bash
-[alumno00@<nodo-acceso> ~]$ whoami
+[alumno00@login01 ~]$ whoami
 alumno00
-[alumno00@<nodo-acceso> ~]$ id
+[alumno00@login01 ~]$ id
 uid=XXXX(alumno00) gid=XXXX(alumno00) groups=XXXX(alumno00),XXXX(hpccourse)
-[alumno00@<nodo-acceso> ~]$ groups
+[alumno00@login01 ~]$ groups
 alumno00 hpccourse
 ```
 
-En el HPC-CIBER **cada proyecto es un grupo**: perteneces a `hpccourse`, el grupo del proyecto del curso, y por eso puedes entrar en su carpeta. `[CONFIRMAR formato real de id y nombre del nodo de acceso]`
+En el HPC-CIBER **cada proyecto es un grupo**: perteneces a `hpccourse`, el grupo del proyecto del curso, y por eso puedes entrar en su carpeta. `[CONFIRMAR formato real de id]`
 
 - Carpetas disponibles en `/`
 
@@ -359,126 +253,137 @@ La organización clara de los proyectos permite localizar fácilmente los datos,
 
 ### Ejercicio 4: Configuración de clave SSH
 
-- Ahora vamos a configurar nuestra key ssh para poder conectarnos sin necesidad de escribir contraseña en cada acceso.
-- Debemos generar la clave ssh-key desde nuestro ordenador local y copiarla a portutatis.isciii.es. Por lo tanto *salimos del HPC con `exit`*
+`[CONFIRMAR: que el HPC-CIBER admite autenticación por clave SSH a través de Zscaler; si no, se quita este ejercicio]`
+
+- Ahora vamos a configurar nuestra clave SSH para poder conectarnos sin necesidad de escribir la contraseña en cada acceso (solo para la opción 2, `ssh` desde tu equipo).
+- La clave se genera en **tu ordenador** y se copia al clúster. Por lo tanto *salimos del HPC con `exit`*:
 
 ```bash
 ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519
-ssh-copy-id -i ~/.ssh/id_ed25519 -p 32122 usuario@portutatis.isciii.es
+ssh-copy-id -i ~/.ssh/id_ed25519 <usuario>@<IP acabada en .10>
 ```
 
 Output:
 
 ```bash
-Generating public/private rsa key pair.
-Enter file in which to save the key (/home/local/.ssh/id_rsa):
+Generating public/private ed25519 key pair.
 Enter passphrase (empty for no passphrase):
 ...
 Number of keys added: 1
-Now try logging into the machine, with:   ssh 'usuario@portutatis.isciii.es'
+Now try logging into the machine, with:   ssh '<usuario>@<IP acabada en .10>'
 ```
 
-El comando `ssh-keygen` genera una nueva clave pública/privada en el directorio `~/.ssh/`. Con `ssh-copy-id` copiamos la clave al clúster. A partir de este momento, las conexiones SSH se autentican sin pedir la contraseña.
+El comando `ssh-keygen` genera una nueva clave pública/privada en el directorio `~/.ssh/`. Con `ssh-copy-id` copiamos la clave pública al clúster. A partir de este momento, las conexiones SSH se autentican sin pedir la contraseña. La clave privada (`id_ed25519`, sin `.pub`) no se comparte nunca.
 
 ### Ejercicio 5: Transferencia de datos
 
-- En este ejercicio vamos a tranferir archivos desde nuestro ordenador local al hpc con varias opciones: `scp`, `rsync`, WinSCP o FileZilla.
+- En este ejercicio vamos a transferir los datos de la práctica a la carpeta `RAW` de tu proyecto (ejercicio 3). Los datos van **directamente al proyecto en `/data-ciber`**, no al home.
 
-#### Subir archivo con `scp`
+| Vía | Para qué | Límite |
+|---|---|---|
+| Menú de ficheros del portal PRA | Ficheros pequeños, sin instalar nada | 50 MB por fichero |
+| `scp` / `rsync` desde tu equipo (opción 2, con ZCC) | Carpetas y datos de secuenciación | — |
+| Panel SFTP de MobaXterm | Lo mismo, arrastrando | — |
+| `srun rsync` dentro del HPC | Copiar entre espacios del HPC (por ejemplo, los datos del curso a tu `RAW`, o `/data-ciber` ↔ `/scratch`) | — |
 
-- Descargamos los datos de la práctica en nuestro ordenador local. Bien en [zenodo](https://zenodo.org/records/17207071) o por línea de comandos:
+`[CONFIRMAR: límite de 50 MB del PRA y vía recomendada para ficheros de más de 50 GB]`
+
+#### Descargar los datos de la práctica en tu ordenador
+
+Desde [Zenodo](https://zenodo.org/records/17207071) o por línea de comandos:
 
 ```bash
-mkdir -p hpc_isciii_data
+mkdir -p hpc_course_data
 for file in ERR2261314_1.fastq.gz ERR2261314_2.fastq.gz \
             ERR2261315_1.fastq.gz ERR2261315_2.fastq.gz \
             ERR2261318_1.fastq.gz ERR2261318_2.fastq.gz \
             virus1_R1.fastq.gz virus1_R2.fastq.gz \
             virus2_R1.fastq.gz virus2_R2.fastq.gz; do
-    wget -c -O "hpc_isciii_data/$file" \
+    wget -c -O "hpc_course_data/$file" \
         "https://zenodo.org/api/records/17207071/files/$file/content" || break
 done
 ```
 
-- Nos movemos a donde hemos descargado los datos:
+#### Subir archivos con `scp`
 
 ```bash
-cd /path/to/where/hpc_isciii_data_is
-scp -r -P 32122 hpc_isciii_data usuario@portutatis.isciii.es:/home/hpc_course/usuario
+cd /path/to/where/hpc_course_data_is
+scp hpc_course_data/*.fastq.gz <usuario>@<IP acabada en .10>:/data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_<usuario>/RAW/
 ```
 
 Output:
 
 ```bash
-ERR2261315_2.fastq.gz                                                                                                                                                            100%   99MB  54.9MB/s   00:01
-ERR2261314_2.fastq.gz                                                                                                                                                            100%   95MB  52.9MB/s   00:01
-ERR2261314_1.fastq.gz                                                                                                                                                            100%   76MB  54.0MB/s   00:01
-ERR2261318_2.fastq.gz                                                                                                                                                            100%  140MB  53.3MB/s   00:02
-ERR2261315_1.fastq.gz                                                                                                                                                            100%   81MB  53.8MB/s   00:01
-ERR2261318_1.fastq.gz                                                                                                                                                            100%  116MB  53.1MB/s   00:02
-virus1_R2.fastq.gz                                                                                                                                                               100%   13MB  46.9MB/s   00:00
-virus1_R1.fastq.gz                                                                                                                                                               100%   13MB  62.2MB/s   00:00
+ERR2261314_1.fastq.gz                      100%   76MB  54.0MB/s   00:01
+ERR2261314_2.fastq.gz                      100%   95MB  52.9MB/s   00:01
+...
+virus2_R2.fastq.gz                         100%   13MB  46.9MB/s   00:00
 ```
 
-#### Descargar archivo con `scp`
+#### Descargar un archivo con `scp`
 
 ```bash
-scp -P 32122 usuario@portutatis.isciii.es:/home/hpc_course/usuario/hpc_isciii_data/ERR2261314_1.fastq.gz ./
+scp <usuario>@<IP acabada en .10>:/data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_<usuario>/RAW/ERR2261314_1.fastq.gz ./
 ```
 
-Output:
+#### Sincronizar una carpeta con `rsync`
 
 ```bash
-ERR2261314_1.fastq.gz
-                                                                                                 100%   76MB  89.5MB/s   00:00
-```
-
-#### Sincronizar carpeta con `rsync`
-
-```bash
-rsync -avz -e "ssh -p 32122" hpc_isciii_data usuario@portutatis.isciii.es:/home/hpc_course/usuario
+rsync -avz hpc_course_data/ <usuario>@<IP acabada en .10>:/data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_<usuario>/RAW/
 ```
 
 Output:
 
 ```bash
 sending incremental file list
-data/
-data/ERR2261314_1.fastq.gz
-data/ERR2261314_2.fastq.gz
-data/ERR2261315_1.fastq.gz
-data/ERR2261315_2.fastq.gz
-data/ERR2261318_1.fastq.gz
-data/ERR2261318_2.fastq.gz
-data/virus1_R1.fastq.gz
-data/virus1_R2.fastq.gz
-
+ERR2261314_1.fastq.gz
+...
 sent 664,244,980 bytes  received 172 bytes  35,905,143.35 bytes/sec
 total size is 663,867,202  speedup is 1.00
 ```
 
-#### Sincronizar carpeta con WinScp
+Si lo repites, `rsync` no vuelve a copiar lo que ya está: solo transfiere lo que falta o ha cambiado.
 
-- Abrimos WinSCP y configuramos un nuevo sitio
+#### Copiar los datos del curso dentro del HPC con `srun rsync`
+
+Si no puedes subir datos desde tu equipo, el profesor ha dejado los mismos ficheros en `/data-ciber/infec/hpccourse/datos_prueba`. Copiar también es trabajo (lee y escribe en disco y usa la red), así que **no se hace en el nodo de acceso**: se pide un nodo de cómputo con `srun` y la copia se hace allí con `rsync`.
+
+```bash
+srun --partition=test --cpus-per-task=1 --mem=1G --time=00:10:00 \
+  rsync -avh /data-ciber/infec/hpccourse/datos_prueba/ /data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_${USER}/RAW/
+```
+
+Este comando lo vas a usar en todo el curso. Léelo por partes:
+
+| Parte | Qué hace |
+|---|---|
+| `srun` | Pide a SLURM un hueco en un nodo de cómputo y ejecuta allí lo que va detrás. Mientras dura, tu terminal espera; al acabar, vuelves al nodo de acceso. |
+| `--partition=test` | En qué partición. |
+| `--cpus-per-task=1 --mem=1G` | Una copia no necesita más: 1 CPU y 1 GB. |
+| `--time=00:10:00` | Como mucho 10 minutos. Si se pasa, SLURM la corta. |
+| `\` | Solo parte la línea en dos para que se lea mejor. |
+| `rsync -a` | Copia en modo archivo: entra en subcarpetas y conserva fechas, permisos y enlaces. |
+| `-v -h` | Te dice qué copia (`-v`) con tamaños legibles (`-h`). |
+| `.../datos_prueba/` | Origen. **La barra final importa:** copia el *contenido* de la carpeta. Sin barra, crearía `RAW/datos_prueba/`. |
+| `.../RAW/` | Destino. |
+
+Verás `srun` a fondo en la práctica 5.
+
+#### Sincronizar una carpeta con MobaXterm, WinSCP o FileZilla
+
+- **MobaXterm:** al conectarte por SSH (opción 2), el panel de la izquierda es un explorador SFTP del HPC. Navega a la carpeta `RAW` de tu proyecto y arrastra los ficheros desde tu ordenador.
+- **WinSCP o FileZilla:** crea un sitio nuevo con protocolo SFTP, `host = <IP acabada en .10>`, `puerto = 22`, `usuario = <usuario del HPC>`, y arrastra los ficheros del panel izquierdo (tu ordenador) al derecho (el HPC). Las capturas son de la configuración del curso original; cambia el host y el puerto.
 
 ![winscp1](winscp1.png)
 
-- Damos a conectar
-- Una vez conectado arrastra los ficheros del panel de la izquierda al panel de la derecha.
-
-#### Sincronizar carpeta con Filezilla
-
-- Abrimos Filezilla y conectamos usando las credenciales:
-
 ![filezilla1](filezilla1.png)
-
-- Una vez conectado igual que winscp arrastramos del panel de la izquierda (nuestro ordenador local), al panel de la derecha (el servidor remoto).
 
 Resumen:
 
-- `scp` copia archivos individuales de manera directa.
+- `scp` copia archivos de manera directa.
 - `rsync` sincroniza directorios y solo transfiere cambios, lo que ahorra tiempo en transferencias repetidas.
-- --WinSCP-- y --FileZilla-- ofrecen interfaz gráfica, con arrastrar y soltar. La configuración requiere: `host = portutatis.isciii.es`, `puerto = 32122`, `usuario = usuario`.
+- `srun rsync` es la forma de copiar **dentro** del HPC sin cargar el nodo de acceso.
+- MobaXterm, WinSCP y FileZilla ofrecen interfaz gráfica, con arrastrar y soltar.
 
 ### Ejercicio 6: Verificación de integridad
 
@@ -486,10 +391,12 @@ Resumen:
 
 ```bash
 # En nuestro ordenador local creamos el fichero md5sum de los ficheros
-cd /path/to/hpc_isciii_data
+cd /path/to/hpc_course_data
 md5sum *.gz > md5sum.md5
-scp -P 32122 md5sum.md5 usuario@portutatis.isciii.es:/home/hpc_course/usuario/hpc_isciii_data
-ssh -p 32122 usuario@portutatis.isciii.es "cd /home/hpc_course/usuario/hpc_isciii_data;md5sum -c md5sum.md5"
+scp md5sum.md5 <usuario>@<IP acabada en .10>:/data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_<usuario>/RAW/
+# Y ya en el HPC (consola del PRA o ssh), comprobamos:
+cd /data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_<usuario>/RAW
+md5sum -c md5sum.md5
 ```
 
 Output:
@@ -503,6 +410,8 @@ ERR2261318_1.fastq.gz: OK
 ERR2261318_2.fastq.gz: OK
 virus1_R1.fastq.gz: OK
 virus1_R2.fastq.gz: OK
+virus2_R1.fastq.gz: OK
+virus2_R2.fastq.gz: OK
 ```
 
 Output si fallase alguno:
