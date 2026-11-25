@@ -48,6 +48,10 @@ Flujo de trabajo: **/data-ciber → /scratch (calcular) → resultados a /data-c
 
 - **Práctica 9:** [Casos prácticos y problemas habituales](exercises/09_usecase_issues/handson_usecase_issues1.md)
 
+## Para profesores
+
+Preparación del curso y pendientes: [profesores/TODO_profesores.md](profesores/TODO_profesores.md).
+
 ## Licencia
 
 [GPL-3.0](LICENSE), la misma que el repositorio original.

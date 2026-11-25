@@ -286,7 +286,7 @@ El comando `ssh-keygen` genera una nueva clave pública/privada en el directorio
 | Panel SFTP de MobaXterm | Lo mismo, arrastrando | — |
 | `srun rsync` dentro del HPC | Copiar entre espacios del HPC (por ejemplo, los datos del curso a tu `RAW`, o `/data-ciber` ↔ `/scratch`) | — |
 
-`[CONFIRMAR: límite de 50 MB del PRA y vía recomendada para ficheros de más de 50 GB]`
+Los ficheros de más de 50 MB se suben con `scp` o `rsync`. `[CONFIRMAR: que el límite del PRA es 50 MB por fichero]`
 
 #### Descargar los datos de la práctica en tu ordenador
 

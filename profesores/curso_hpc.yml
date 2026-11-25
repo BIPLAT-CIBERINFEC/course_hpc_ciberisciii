@@ -1,0 +1,20 @@
+# Entorno común del curso HPC-CIBER. Lo crea un profesor una vez (profesores/crear_entorno_comun.sh)
+# y todos los alumnos lo usan en modo lectura. Qué práctica usa cada paquete:
+#   fastqc   → 05_srun, 07_scripting, 09_usecase
+#   multiqc  → 07_scripting
+#   seqkit   → 06_software (ejemplo de entorno)
+#   fastp    → 06_software, 09_usecase (sustituye al contenedor mientras no haya Singularity)
+#   spades   → 07_scripting (OpenMP)
+#   nextflow → 08_nextflow
+# [CONFIRMAR versiones al crearlo: micromamba search <paquete>]
+name: curso_hpc
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - fastqc=0.12.1
+  - multiqc
+  - seqkit
+  - fastp
+  - spades=3.15.5
+  - nextflow

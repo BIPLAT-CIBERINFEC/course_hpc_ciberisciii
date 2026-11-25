@@ -1,0 +1,88 @@
+# Tareas de los profesores
+
+Lista de lo que hay que dejar listo antes del curso y de lo que falta por confirmar en cada práctica. Se actualiza con cada sección adaptada.
+
+> **Rutas.** La ruta oficial del curso es `/data-ciber/infec/hpccourse` (y `/scratch/infec/hpccourse`), que creará el administrador de sistemas unas semanas antes del curso. Mientras tanto, las pruebas se hacen en `/data-ciber/infec/biplat/hpccourse` y `/scratch/infec/biplat/hpccourse`.
+
+## 1. Con el administrador de sistemas (UTIC de CIBER)
+
+- [ ] Crear el proyecto del curso: `/data-ciber/infec/hpccourse` y `/scratch/infec/hpccourse`, con el grupo `hpccourse`.
+- [ ] Si hay prácticas con alumnos: crear las cuentas `alumno00` … `alumnoNN`, cada una con contraseña del HPC y acceso temporal a Zscaler.
+- [ ] Dar a todos los alumnos y profesores lectura y escritura en `/data-ciber/infec/hpccourse` y `/scratch/infec/hpccourse`.
+- [ ] Confirmar que las cuentas del curso pueden usar la partición `test` (hoy `sacctmgr show assoc` no devuelve nada).
+- [ ] GPU: los nodos `gpu01`–`gpu02` no están disponibles. ¿Lo estarán para el curso? ¿Tendrán acceso los alumnos a la partición `gpu`? ¿Está `nvidia-smi` en esos nodos?
+- [ ] Nodos `cn07`–`cn10` y `fn01` aparecían `down*` el 24/11. ¿Estarán disponibles?
+- [ ] Singularity o Apptainer: no está instalado (ni como módulo ni en el sistema). Hace falta para la práctica 6 (contenedores) y la 8 (Nextflow con `-profile singularity`).
+- [ ] RAxML en su versión híbrida MPI, como módulo compilado contra `openmpi5/5.0.3` (práctica 7). El resto del software va en el entorno común de micromamba.
+- [ ] ¿Admite el HPC-CIBER autenticación por clave SSH a través de Zscaler? (práctica 4, ejercicio 4)
+- [ ] ¿Limita SLURM la memoria por trabajo (cgroups)? Afecta al ejemplo de memoria agotada de la práctica 5.
+
+## 2. Preparación técnica (profesores)
+
+- [ ] **Datos de prueba** en `<base>/datos_prueba`: los 10 FASTQ de [Zenodo 17207071](https://zenodo.org/records/17207071), de solo lectura. Desde un nodo de cómputo (sí tienen internet):
+  ```bash
+  srun --partition=test --mem=1G --time=00:30:00 bash -c '
+    mkdir -p /data-ciber/infec/hpccourse/datos_prueba && cd /data-ciber/infec/hpccourse/datos_prueba
+    for f in ERR2261314_1 ERR2261314_2 ERR2261315_1 ERR2261315_2 ERR2261318_1 ERR2261318_2 virus1_R1 virus1_R2 virus2_R1 virus2_R2; do
+      wget -c -O "$f.fastq.gz" "https://zenodo.org/api/records/17207071/files/$f.fastq.gz/content"
+    done
+    md5sum *.fastq.gz > md5sum.md5'
+  chmod -R a-w /data-ciber/infec/hpccourse/datos_prueba
+  ```
+- [ ] Copiar también a `datos_prueba` el fichero de la práctica de Linux `microarray_adenoma_hk69.csv` (por si el nodo de acceso no tiene internet).
+- [ ] **micromamba y entorno común del curso.** Una vez, en un nodo de cómputo:
+  ```bash
+  # pruebas: CURSO_BASE=/data-ciber/infec/biplat/hpccourse
+  srun --partition=test --cpus-per-task=4 --mem=8G --time=01:00:00 \
+    bash profesores/crear_entorno_comun.sh
+  ```
+  Deja micromamba compartido en `<base>/comun/bin/micromamba` y el entorno `<base>/comun/envs/curso_hpc`, protegido contra escritura. Paquetes ([curso_hpc.yml](curso_hpc.yml)) y prácticas que los usan:
+
+  | Paquete | Prácticas |
+  |---|---|
+  | fastqc | 5 (srun), 7 (scripting), 9 (casos) |
+  | multiqc | 7 |
+  | seqkit | 6 (ejemplo de entorno) |
+  | fastp | 6, 9 (mientras no haya Singularity) |
+  | spades | 7 (OpenMP) |
+  | nextflow | 8 |
+
+  En la práctica 6 cada alumno crea además su propio entorno pequeño (en su home), para aprender a hacerlo.
+- [ ] Probar el entorno: `micromamba run -p <base>/comun/envs/curso_hpc fastqc --version` (y el resto) desde un nodo de cómputo.
+- [ ] Carpeta de referencia del profesor (`<AAAAMMDD>_HPC-COURSE_profesor00`) con la estructura esperada al terminar las prácticas:
+  ```
+  <AAAAMMDD>_HPC-COURSE_profesor00
+  ├── ANALYSIS
+  │   ├── 00-reads                          enlaces a ../../RAW con nombres <muestra>_R1/_R2.fastq.gz
+  │   ├── 01-fastqc                         informes FastQC + logs/
+  │   ├── 06-software-management
+  │   ├── 07-scripting-and-parallelization  scripts .sbatch + data/raxml_demo.phy
+  │   ├── 08-scientific-workflows-nextflow
+  │   └── samples_id.txt
+  ├── DOC
+  ├── RAW                                   FASTQ originales + md5sum.md5
+  ├── REFERENCES
+  ├── RESULTS
+  └── TMP
+  ```
+- [ ] Caché de imágenes Singularity en `<base>/singularity-cache` con las de `nf-core/demo` (práctica 8), cuando haya Singularity.
+
+## 3. Pendientes de confirmar en las prácticas
+
+Cada uno aparece en la práctica como `[CONFIRMAR: …]`. Se resuelven al final, antes del curso.
+
+| Práctica | Qué confirmar |
+|---|---|
+| 1 · Linux (`handson_linux2_FileProcessing.md`) | Salida a internet desde el nodo de acceso (`wget`) |
+| 4 · Acceso (`handson_access.md`) | Formato real de `id` · permisos reales de las carpetas del proyecto · claves SSH a través de Zscaler · que el límite del PRA es 50 MB por fichero |
+| 5 · srun (`handson_srun.md`) | Mensaje de memoria agotada (cgroups) · salida real de `lscpu` en un nodo de cómputo · `nvidia-smi` y acceso a `gpu` · `sacct` activo y visible para el alumno · FastQC instalado en el entorno común |
+
+## 4. Ya comprobado (25/11/2026)
+
+- Memoria máxima de un nodo (fat, `fn01`): 2.058.200 MB (~2 TB). Particiones y CPUs como en las prácticas; `gpu` tiene `gpu:1` por nodo.
+- No hay módulos de FastQC, MultiQC, SPAdes, RAxML, Nextflow, Java ni Singularity; sí `openmpi5/5.0.3`.
+- Disponibles: `seff`, `sstat`, `tree`, `watch`, `nano`, `less`, `man`, `rsync`, `md5sum`, `python3`, `curl`.
+- Los nodos de cómputo tienen salida a internet (micromamba, conda, quay.io, depot de Galaxy, GitHub).
+- No hay comando `quota`; `df` muestra el volumen compartido, no la cuota.
+- En la ruta de pruebas (`/data-ciber/infec/biplat/hpccourse` y su espejo en `/scratch`) se pueden crear carpetas.
+- Ficheros de más de 50 MB: por `scp` o `rsync`.
