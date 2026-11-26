@@ -12,7 +12,7 @@ Lista de lo que hay que dejar listo antes del curso y de lo que falta por confir
 - [ ] Confirmar que las cuentas del curso pueden usar la partición `test` (hoy `sacctmgr show assoc` no devuelve nada).
 - [ ] GPU: los nodos `gpu01`–`gpu02` no están disponibles. ¿Lo estarán para el curso? ¿Tendrán acceso los alumnos a la partición `gpu`? ¿Está `nvidia-smi` en esos nodos?
 - [ ] Nodos `cn07`–`cn10` y `fn01` aparecían `down*` el 24/11. ¿Estarán disponibles?
-- [ ] Singularity o Apptainer: no está instalado (ni como módulo ni en el sistema). Hace falta para la práctica 6 (contenedores) y la 8 (Nextflow con `-profile singularity`).
+- [ ] **Instalar Apptainer** (no hay Singularity ni Apptainer, ni como módulo ni en el sistema) en los nodos de cómputo. Hace falta para la práctica 6 (contenedores) y la 8 (Nextflow). Después, volver a lanzar `profesores/crear_entorno_comun.sh` para descargar las imágenes en `common/images`.
 - [ ] RAxML en su versión híbrida MPI, como módulo compilado contra `openmpi5/5.0.3` (práctica 7). El resto del software va en el entorno común de micromamba.
 - [ ] ¿Admite el HPC-CIBER autenticación por clave SSH a través de Zscaler? (práctica 4, ejercicio 4)
 - [ ] ¿Limita SLURM la memoria por trabajo (cgroups)? Afecta al ejemplo de memoria agotada de la práctica 5.
@@ -36,19 +36,19 @@ Lista de lo que hay que dejar listo antes del curso y de lo que falta por confir
   srun --partition=test --cpus-per-task=4 --mem=8G --time=01:00:00 \
     bash profesores/crear_entorno_comun.sh
   ```
-  Deja micromamba compartido en `<base>/comun/bin/micromamba` y el entorno `<base>/comun/envs/curso_hpc`, protegido contra escritura. Paquetes ([curso_hpc.yml](curso_hpc.yml)) y prácticas que los usan:
+  Crea la carpeta común del curso, `<base>/common`, que los alumnos solo leen: micromamba en `common/bin/micromamba`, el entorno en `common/envs/curso_hpc` y las imágenes de Apptainer en `common/images` (por ahora `fastp.sif`). Todo queda protegido contra escritura. Paquetes ([curso_hpc.yml](curso_hpc.yml)) y prácticas que los usan:
 
   | Paquete | Prácticas |
   |---|---|
   | fastqc | 5 (srun), 7 (scripting), 9 (casos) |
   | multiqc | 7 |
   | seqkit | 6 (ejemplo de entorno) |
-  | fastp | 6, 9 (mientras no haya Singularity) |
+  | fastp | 9 (en la 6 se usa como imagen de Apptainer: `common/images/fastp.sif`) |
   | spades | 7 (OpenMP) |
   | nextflow | 8 |
 
   En la práctica 6 cada alumno crea además su propio entorno pequeño (en su home), para aprender a hacerlo.
-- [ ] Probar el entorno: `micromamba run -p <base>/comun/envs/curso_hpc fastqc --version` (y el resto) desde un nodo de cómputo.
+- [ ] Probar el entorno: `micromamba run -p <base>/common/envs/curso_hpc fastqc --version` (y el resto) desde un nodo de cómputo.
 - [ ] Carpeta de referencia del profesor (`<AAAAMMDD>_HPC-COURSE_profesor00`) con la estructura esperada al terminar las prácticas:
   ```
   <AAAAMMDD>_HPC-COURSE_profesor00
@@ -65,7 +65,7 @@ Lista de lo que hay que dejar listo antes del curso y de lo que falta por confir
   ├── RESULTS
   └── TMP
   ```
-- [ ] Caché de imágenes Singularity en `<base>/singularity-cache` con las de `nf-core/demo` (práctica 8), cuando haya Singularity.
+- [ ] Imágenes de `nf-core/demo` (práctica 8) en `<base>/common/images`, cuando haya Apptainer.
 
 ## 3. Pendientes de confirmar en las prácticas
 
@@ -80,7 +80,7 @@ Cada uno aparece en la práctica como `[CONFIRMAR: …]`. Se resuelven al final,
 ## 4. Ya comprobado (25/11/2026)
 
 - Memoria máxima de un nodo (fat, `fn01`): 2.058.200 MB (~2 TB). Particiones y CPUs como en las prácticas; `gpu` tiene `gpu:1` por nodo.
-- No hay módulos de FastQC, MultiQC, SPAdes, RAxML, Nextflow, Java ni Singularity; sí `openmpi5/5.0.3`.
+- No hay módulos de FastQC, MultiQC, SPAdes, RAxML, Nextflow, Java ni Singularity/Apptainer; sí `openmpi5/5.0.3`. Se usará Apptainer (decisión del 26/11).
 - Disponibles: `seff`, `sstat`, `tree`, `watch`, `nano`, `less`, `man`, `rsync`, `md5sum`, `python3`, `curl`.
 - Los nodos de cómputo tienen salida a internet (micromamba, conda, quay.io, depot de Galaxy, GitHub).
 - No hay comando `quota`; `df` muestra el volumen compartido, no la cuota.

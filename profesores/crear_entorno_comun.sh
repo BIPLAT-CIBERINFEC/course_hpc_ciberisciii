@@ -6,18 +6,19 @@
 # Resultado:
 #   $CURSO_COMUN/bin/micromamba         ejecutable compartido
 #   $CURSO_COMUN/envs/curso_hpc         el entorno (fastqc, multiqc, seqkit, fastp, spades, nextflow)
+#   $CURSO_COMUN/images                 imágenes de Apptainer para los alumnos (fastp.sif, ...)
 #   $CURSO_COMUN/pkgs                   caché de paquetes del profesor
 # Los alumnos solo necesitan permiso de lectura; el entorno queda protegido contra escritura.
 set -euo pipefail
 CURSO_BASE="${CURSO_BASE:-/data-ciber/infec/hpccourse}"   # pruebas: CURSO_BASE=/data-ciber/infec/biplat/hpccourse
-CURSO_COMUN="${CURSO_BASE}/comun"
+CURSO_COMUN="${CURSO_BASE}/common"
 YML="$(cd "$(dirname "$0")" && pwd)/curso_hpc.yml"
 
 if [[ -z "${SLURM_JOB_ID:-}" ]]; then
   echo "Ejecútalo dentro de srun (ver la cabecera), no en el nodo de acceso." >&2; exit 1
 fi
 
-mkdir -p "$CURSO_COMUN"/{bin,envs,pkgs}
+mkdir -p "$CURSO_COMUN"/{bin,envs,images,pkgs}
 cd "$CURSO_COMUN"
 
 # 1. micromamba compartido
@@ -37,8 +38,17 @@ for c in fastqc multiqc seqkit fastp spades.py nextflow; do
   printf "%-10s " "$c"; bin/micromamba run -p "$CURSO_COMUN/envs/curso_hpc" "$c" --version 2>&1 | head -1
 done
 
-# 4. Permisos: todos leen y ejecutan; nadie escribe en el entorno (tampoco por error)
+# 4. Imágenes de Apptainer (práctica 6). Si Apptainer aún no está instalado, se salta.
+if command -v apptainer >/dev/null 2>&1; then
+  export APPTAINER_CACHEDIR="$CURSO_COMUN/images/.cache"
+  [[ -f images/fastp.sif ]] || apptainer pull images/fastp.sif https://depot.galaxyproject.org/singularity/fastp%3A1.0.1--heae3180_0
+  rm -rf "$APPTAINER_CACHEDIR"
+else
+  echo "[AVISO] apptainer no está disponible: images/ queda vacía. Repite el script cuando lo instalen." >&2
+fi
+
+# 5. Permisos: todos leen y ejecutan; nadie escribe en el entorno (tampoco por error)
 chmod -R a+rX "$CURSO_COMUN"
-chmod -R a-w "$CURSO_COMUN/envs" "$CURSO_COMUN/bin"
+chmod -R a-w "$CURSO_COMUN/envs" "$CURSO_COMUN/bin" "$CURSO_COMUN/images"
 echo "Entorno listo en $CURSO_COMUN/envs/curso_hpc. Versiones exactas en $CURSO_COMUN/curso_hpc.lock.yml"
-# Para actualizarlo más adelante: chmod -R u+w envs bin, repetir el paso 2 y volver a proteger.
+# Para actualizarlo más adelante: chmod -R u+w envs bin images, repetir el paso 2 y volver a proteger.

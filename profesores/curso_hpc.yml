@@ -3,7 +3,7 @@
 #   fastqc   → 05_srun, 07_scripting, 09_usecase
 #   multiqc  → 07_scripting
 #   seqkit   → 06_software (ejemplo de entorno)
-#   fastp    → 06_software, 09_usecase (sustituye al contenedor mientras no haya Singularity)
+#   fastp    → 09_usecase (en la práctica 6 se usa como imagen de Apptainer, common/images/fastp.sif)
 #   spades   → 07_scripting (OpenMP)
 #   nextflow → 08_nextflow
 # [CONFIRMAR versiones al crearlo: micromamba search <paquete>]

@@ -385,7 +385,7 @@ Por último vamos a efectuar un ciclo de trabajo completo en scratch.
 cd /scratch/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_${USER}/ANALYSIS/
 # El software y micromamba se desarrollarán en la siguiente práctica.
 # FastQC no está como módulo en el HPC-CIBER: lo usamos desde el entorno común del curso
-ls /data-ciber/infec/hpccourse/comun/envs/curso_hpc/bin/fastqc
+ls /data-ciber/infec/hpccourse/common/envs/curso_hpc/bin/fastqc
 ```
 
 `[CONFIRMAR: que FastQC esté instalado en el entorno]`
@@ -393,7 +393,7 @@ ls /data-ciber/infec/hpccourse/comun/envs/curso_hpc/bin/fastqc
 2. Ejecutar fastqc con srun guardando en RESULTS.
 
 ```bash
-srun --partition=test --cpus-per-task=2 --mem=4G --time=00:15:00 --chdir /scratch/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_${USER}/ANALYSIS /data-ciber/infec/hpccourse/comun/bin/micromamba run -p /data-ciber/infec/hpccourse/comun/envs/curso_hpc fastqc -t 2 -o 01-fastqc 00-reads/*.fastq.gz*
+srun --partition=test --cpus-per-task=2 --mem=4G --time=00:15:00 --chdir /scratch/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_${USER}/ANALYSIS /data-ciber/infec/hpccourse/common/bin/micromamba run -p /data-ciber/infec/hpccourse/common/envs/curso_hpc fastqc -t 2 -o 01-fastqc 00-reads/*.fastq.gz*
 ```
 
 3. Revisar salida.
@@ -407,7 +407,7 @@ ls 01-fastqc
 3. Para hacer este análisis hemos utilizado un único comando srun, es decir hemos analizado todas las muestras utilizando un único job, y se ha analizado una detrás de otra. Ahora vamos a lanzarlas todas a la vez en paralelo.
 
 ```bash
-cat samples_id.txt | xargs -I @@ echo "srun --chdir /scratch/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_${USER}/ANALYSIS --partition=test --job-name fastqc_@@ --cpus-per-task=2 --mem=4G --time=00:15:00 /data-ciber/infec/hpccourse/comun/bin/micromamba run -p /data-ciber/infec/hpccourse/comun/envs/curso_hpc fastqc -t 2 -o 01-fastqc 00-reads/@@_R1.fastq.gz 00-reads/@@_R2.fastq.gz &" | bash
+cat samples_id.txt | xargs -I @@ echo "srun --chdir /scratch/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_${USER}/ANALYSIS --partition=test --job-name fastqc_@@ --cpus-per-task=2 --mem=4G --time=00:15:00 /data-ciber/infec/hpccourse/common/bin/micromamba run -p /data-ciber/infec/hpccourse/common/envs/curso_hpc fastqc -t 2 -o 01-fastqc 00-reads/@@_R1.fastq.gz 00-reads/@@_R2.fastq.gz &" | bash
 ```
 
 Lo puedes comprobar en otra terminal lanzando:
