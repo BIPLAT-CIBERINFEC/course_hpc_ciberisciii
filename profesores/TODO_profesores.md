@@ -19,6 +19,8 @@ Lista de lo que hay que dejar listo antes del curso y de lo que falta por confir
 
 ## 2. Preparación técnica (profesores)
 
+- [ ] **Avisar a los alumnos del autolimpiado de `/scratch`**: hoy no se aplica, pero se aplicará (plazo por confirmar). Lo que no estén usando, a `/data-ciber`.
+
 - [ ] **Datos de prueba** en `<base>/datos_prueba`: los 10 FASTQ de [Zenodo 17207071](https://zenodo.org/records/17207071), de solo lectura. Desde un nodo de cómputo (sí tienen internet):
   ```bash
   srun --partition=test --mem=1G --time=00:30:00 bash -c '
@@ -48,6 +50,8 @@ Lista de lo que hay que dejar listo antes del curso y de lo que falta por confir
   | nextflow | 8 |
 
   En la práctica 6 cada alumno crea además su propio entorno pequeño (en su home), para aprender a hacerlo.
+- [ ] Comprobar como `alumno00` que se lee `common/` (`bin/micromamba`, `envs/curso_hpc`, `images/`) con `micromamba run -p`, `micromamba activate <ruta>` y `apptainer exec`.
+- [ ] Ensayar con varios alumnos a la vez el `micromamba create` y el `pip install` de la práctica 6 (descargan de internet). Si va lento, pasar esa parte a demo.
 - [ ] Probar el entorno: `micromamba run -p <base>/common/envs/curso_hpc fastqc --version` (y el resto) desde un nodo de cómputo.
 - [ ] Carpeta de referencia del profesor (`<AAAAMMDD>_HPC-COURSE_profesor00`) con la estructura esperada al terminar las prácticas:
   ```
@@ -75,6 +79,7 @@ Cada uno aparece en la práctica como `[CONFIRMAR: …]`. Se resuelven al final,
 |---|---|
 | 1 · Linux (`handson_linux2_FileProcessing.md`) | Salida a internet desde el nodo de acceso (`wget`) |
 | 4 · Acceso (`handson_access.md`) | Formato real de `id` · permisos reales de las carpetas del proyecto · claves SSH a través de Zscaler · que el límite del PRA es 50 MB por fichero |
+| 6 · Software (`handson_software_management.md`) | Plazo del autolimpiado de `/scratch` · que no hay `pip` fuera de un venv en los nodos y salida real de `pip list` · versión de micromamba en `common/bin` · que los alumnos pueden activar `common/envs/curso_hpc` y versiones de seqkit y FastQC · `R` fuera del PATH y salida de `module load R/4.2.1` · salidas de `module avail/spider openmpi` · mayúsculas en `module spider` · cómo se carga Apptainer · que las imágenes de `common/images` funcionan en los nodos |
 | 5 · srun (`handson_srun.md`) | Mensaje de memoria agotada (cgroups) · salida real de `lscpu` en un nodo de cómputo · `nvidia-smi` y acceso a `gpu` · `sacct` activo y visible para el alumno · FastQC instalado en el entorno común |
 
 ## 4. Ya comprobado (25/11/2026)

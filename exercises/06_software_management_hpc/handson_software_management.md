@@ -1,33 +1,35 @@
-# Curso Práctico de Iniciación al uso del Entorno de Alta Computación
+# Curso de iniciación al HPC-CIBER
 
-CAMBIAR A USAR NODO DE COMPUTO PARA INSTALAR CON MICROMAMBA PORQUE SE LLENA LA RAM DEL NODO DE ACCESO
+BiPLAT-CIBERINFEC · adaptado del curso de BU-ISCIII
 
 ## Práctica 6: Gestión de Software en HPC
 
 Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. Hoy cubriremos tres temas principales:
 
-- [Curso Práctico de Iniciación al uso del Entorno de Alta Computación](#curso-práctico-de-iniciación-al-uso-del-entorno-de-alta-computación)
+- [Curso de iniciación al HPC-CIBER](#curso-de-iniciación-al-hpc-ciber)
   - [Práctica 6: Gestión de Software en HPC](#práctica-6-gestión-de-software-en-hpc)
     - [Notas importantes](#notas-importantes)
-  - [1. Permisos: PC personal vs HPC](#1-permisos-pc-personal-vs-hpc)
-  - [2. Entornos Virtuales \& Gestores de Software](#2-entornos-virtuales--gestores-de-software)
+  - [1. Entornos Virtuales \& Gestores de Software](#1-entornos-virtuales--gestores-de-software)
+    - [Usar el entorno común del curso: activate, srun y sbatch](#usar-el-entorno-común-del-curso-activate-srun-y-sbatch)
     - [(Extra) Cómo compartir entornos virtuales entre usuarios con micromamba](#extra-cómo-compartir-entornos-virtuales-entre-usuarios-con-micromamba)
     - [2.2 Otros gestores: Easybuild](#22-otros-gestores-easybuild)
-  - [3. Contenedores: Docker \& Singularity](#3-contenedores-docker--singularity)
-    - [3.1 Descargar y ejecutar un contenedor de Singularity](#31-descargar-y-ejecutar-un-contenedor-de-singularity)
-    - [3.2 Otros conceptos importantes sobre singularity](#32-otros-conceptos-importantes-sobre-singularity)
+  - [3. Contenedores: Docker \& Apptainer](#3-contenedores-docker--apptainer)
+    - [3.1 Las imágenes comunes del curso](#31-las-imágenes-comunes-del-curso)
+    - [3.2 Descargar tu propia imagen](#32-descargar-tu-propia-imagen)
+    - [3.3 Lanzar el contenedor con srun](#33-lanzar-el-contenedor-con-srun)
+    - [3.4 Otros conceptos importantes sobre Apptainer](#34-otros-conceptos-importantes-sobre-apptainer)
 
 ### Notas importantes
 
-- El acceso se realiza al nodo de login `portutatis.isciii.es` mediante el puerto `32122`.
-- No se deben ejecutar cálculos en el nodo de login, solo gestionar ficheros y enviar trabajos a la cola.
+- El acceso se realiza al nodo de acceso `login01` como en la práctica 4: consola del portal de Zscaler o `ssh <usuario>@<IP acabada en .10>`.
+- No se deben ejecutar cálculos en el nodo de acceso, solo gestionar ficheros y enviar trabajos a la cola. **Instalar software también cuenta**: la instalación de entornos consume CPU y memoria, por eso en esta práctica la hacemos dentro de un nodo de cómputo (`srun --pty bash`).
 - Los datos de usuario se organizan en diferentes espacios de trabajo:
 
-  - `/home/usuario` → scripts y ficheros pequeños.
-  - `/data/unidad` → datos y resultados de proyectos.
-  - `/scratch/unidad` → ejecución temporal de trabajos (se eliminan ficheros inactivos a los 5 días).
-  - `/local_scratch` → espacio temporal en cada nodo, se elimina al terminar el trabajo.
+  - `/hpcciber/home/<usuario>` → configuración y scripts personales pequeños.
+  - `/data-ciber/<área>/<proyecto>` → proyecto persistente. El del curso es `/data-ciber/infec/hpccourse`.
+  - `/scratch/<área>/<proyecto>` → ejecución temporal de trabajos. El del curso es `/scratch/infec/hpccourse`. **Ojo:** el HPC-CIBER aplicará una política de autolimpiado de los ficheros inactivos de `/scratch`. Hoy no está activa, pero no dejes ahí nada que no estés usando y guarda siempre los resultados en `/data-ciber`. `[CONFIRMAR: plazo de la política de autolimpiado; el manual habla de unos 45 días]`
 - No almacenar información no relacionada con los cálculos autorizados.
+- En los comandos, sustituye `<AAAAMMDD>` por la fecha de tu carpeta `/data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_${USER}` (práctica 4).
 
 ## 1. Entornos Virtuales & Gestores de Software
 
@@ -35,15 +37,31 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
   Principalmente para aislar dependencias y evitar conflictos, pero también sirve para organizar todo el software necesario para una tarea en el mismo lugar.
 
 - **¿Cómo crear un entorno virtual?**
-  Existen muchas herramientas que ayudan a crear entornos virtuales. Softwares como **conda o mamba** incluso los gestionan para simplificar la instalación de software y evitar conflictos.
+  Existen muchas herramientas que ayudan a crear entornos virtuales. Softwares como **conda o mamba** incluso los gestionan para simplificar la instalación de software y evitar conflictos. En el HPC-CIBER usaremos **micromamba**.
 
-- En primer lugar, sino estamos ya conectados, vamos a conectarnos al HPC por ssh como hemos visto anteriormente: `ssh -p 32122 usuario@portutatis.isciii.es`
+- En primer lugar, sino estamos ya conectados, vamos a conectarnos al HPC como hemos visto anteriormente (práctica 4): `ssh <usuario>@<IP acabada en .10>` o la consola de Zscaler.
 
-  - Una manera sencilla de crear un entorno virtual es con `venv`, una herramienta propia de Python:
+- Para no instalar nada en el nodo de acceso, pedimos una **sesión interactiva en un nodo de cómputo** y trabajamos dentro de ella hasta que se indique lo contrario (el prompt pasará de `login01` a un nodo `cnXX`):
+
+  ```bash
+  cd /data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_${USER}/ANALYSIS
+  mkdir -p 06-software-management
+  srun --partition=test --cpus-per-task=4 --mem=16G --time=02:00:00 --chdir /data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_${USER}/ANALYSIS/06-software-management --pty bash -l
+  hostname # debe ser un nodo de cómputo (cnXX), no login01
+  pwd
+  ```
+
+  Output:
+
+  ```bash
+  cn01
+  /data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_alumno00/ANALYSIS/06-software-management
+  ```
+
+  - Una manera sencilla de crear un entorno virtual es con `venv`, una herramienta propia de Python. Lo creamos en la carpeta de esta práctica, no en el home:
 
     ```bash
-    cd # nos aseguramos que estamos en nuestro home
-    pwd
+    pwd # estamos en ANALYSIS/06-software-management
     ls
     python3 -m venv bioenv # Crear el entorno
     source bioenv/bin/activate # Activar el entorno
@@ -92,7 +110,7 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
     pip install seqkit
     ```
 
-  - Bueno, eso no salió como esperábamos ¿verdad? Como vimos en la clase teórica, pip no crea ninguna virtualización, solo gestiona paquetes y dependencias. Por lo tanto, si intentáramos instalar algo con pip, terminaríamos instalándolo para todos los demás usuarios del HPC. Esa es la razón principal por la que **pip no está instalado globalmente en nuestro HPC**.
+  - Bueno, eso no salió como esperábamos ¿verdad? Como vimos en la clase teórica, pip no crea ninguna virtualización, solo gestiona paquetes y dependencias. Por lo tanto, si intentáramos instalar algo con pip, terminaríamos instalándolo para todos los demás usuarios del HPC. Esa es la razón principal por la que **pip no está instalado globalmente en nuestro HPC**. `[CONFIRMAR: que en los nodos de cómputo del HPC-CIBER no hay pip fuera de un entorno virtual; si lo hubiera, el comando anterior daría otro error]`
 
   - **Discusión:** ¿Se te ocurre alguna alternativa para instalar seqkit?
   Vamos a ver si lo tenemos disponible dentro de **bioenv**, el entorno virtual que creamos previamente.
@@ -101,25 +119,26 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
     source bioenv/bin/activate
     pip list # Comando para ver qué paquetes están instalados por pip
 
-    "Output
+    # Output (las versiones dependen de la versión de Python del nodo)
 
-    Package            Version
-    ------------------ ---------
-    certifi            2025.4.26
-    charset-normalizer 2.0.12
-    commonmark         0.9.1
-    dataclasses        0.8
-    idna               3.10
-    numpy              1.19.5
-    pip                21.3.1
-    Pygments           2.14.0
-    requests           2.27.1
-    rich               12.6.0
-    setuptools         39.2.0
-    typing_extensions  4.1.1
-    urllib3            1.26.20n
-    "
+    # Package            Version
+    # ------------------ ---------
+    # certifi            2025.4.26
+    # charset-normalizer 2.0.12
+    # commonmark         0.9.1
+    # dataclasses        0.8
+    # idna               3.10
+    # numpy              1.19.5
+    # pip                21.3.1
+    # Pygments           2.14.0
+    # requests           2.27.1
+    # rich               12.6.0
+    # setuptools         39.2.0
+    # typing_extensions  4.1.1
+    # urllib3            1.26.20
     ```
+
+    `[CONFIRMAR: salida real de pip list en el HPC-CIBER (versión de Python de los nodos de cómputo)]`
 
     No es nuestro caso, pero podemos intentar instalarlo con pip.
 
@@ -133,16 +152,12 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
 
     Parece que `seqkit` no está disponible en el repositorio de pip [https://pypi.org/](https://pypi.org/). En este caso, usaremos **micromamba** para crear un entorno aislado ya que seqkit si se encuentra accesible en los repositorios de micromamba. Una vez activado el entorno, podremos instalar y usar `seqkit` de manera segura dentro de él. <br><br>
 
-- **Micromamba:** Nuestro gestor de entornos favorito, ya que es especialmente rápido y ligero. Para descargarlo en vuestro _Home_ podéis utilizar el siguiente comando (recuerda salir de `bioenv` primero):
+- **Micromamba:** Nuestro gestor de entornos favorito, ya que es especialmente rápido y ligero. En el HPC-CIBER **no hace falta descargarlo**: hay un micromamba compartido para el curso en `/data-ciber/infec/hpccourse/common/bin/micromamba`. (Fuera del curso, para tener el tuyo propio bastaría con `curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba`, que deja el binario en `./bin/micromamba`. No lo ejecutes ahora.) Sal de `bioenv` primero (`deactivate`) y comprobamos que funciona lanzando el comando y viendo la ayuda:
 
 ```bash
-curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
-```
-
-- Comprobamos que está instalado viendo que tenemos un fichero binario en `~/bin/micromamba`. Además de lanzar el comando y ver que vemos la ayuda
-
-```bash
-micromamba
+deactivate
+ls -l /data-ciber/infec/hpccourse/common/bin/micromamba
+/data-ciber/infec/hpccourse/common/bin/micromamba
 ```
 
 - Output:
@@ -210,20 +225,22 @@ SUBCOMMANDS:
                               This is equivalent to `repoquery search` command
 ```
 
-- Para hacer que el comando micromamba persista en nuestro entorno cuando reiniciemos la terminar, o salgamos y entremos de nuevo en el hpc. Tenemos que añadir una serie de cambios a nuestro bashrc. Además de hacer el setup de la carpeta donde se van a instalar todos los entornos.
+`[CONFIRMAR: versión de micromamba instalada en /data-ciber/infec/hpccourse/common/bin (la del ejemplo es 2.3.2)]`
+
+- Para hacer que el comando micromamba persista en nuestro entorno cuando reiniciemos la terminar, o salgamos y entremos de nuevo en el hpc. Tenemos que añadir una serie de cambios a nuestro bashrc. Además de hacer el setup de la carpeta donde se van a instalar todos los entornos (la raíz de micromamba, `-r`). La ponemos en la carpeta de esta práctica, no en el home:
 
 ```bash
-./bin/micromamba shell init -s bash -r ~/micromamba
+/data-ciber/infec/hpccourse/common/bin/micromamba shell init -s bash -r /data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_${USER}/ANALYSIS/06-software-management/micromamba
 ```
 
-- Este comando añadirá este bloque a tu .bashrc. Puedes comprobarlo con `cat .bashrc`
+- Este comando añadirá este bloque a tu .bashrc. Puedes comprobarlo con `cat ~/.bashrc`
 
 ```bash
 # >>> mamba initialize >>>
-# !! Contents within this block are managed by 'mamba  init' !!
-export MAMBA_EXE='/home/USUARIO/bin/micromamba  bin/micromamba';
-export MAMBA_ROOT_PREFIX='/home/USUARIO/bin/micromamba micromamba';
-__mamba_setup="$("$MAMBA_EXE" shell hook --shell bash  --root-prefix "$MAMBA_ROOT_PREFIX" 2> /dev/null)"
+# !! Contents within this block are managed by 'mamba shell init' !!
+export MAMBA_EXE='/data-ciber/infec/hpccourse/common/bin/micromamba';
+export MAMBA_ROOT_PREFIX='/data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_alumno00/ANALYSIS/06-software-management/micromamba';
+__mamba_setup="$("$MAMBA_EXE" shell hook --shell bash --root-prefix "$MAMBA_ROOT_PREFIX" 2> /dev/null)"
 if [ $? -eq 0 ]; then
     eval "$__mamba_setup"
 else
@@ -233,6 +250,7 @@ unset __mamba_setup
 # <<< mamba initialize <<<
 ```
 
+
 - Para que se apliquen los cambios a nuestra terminal actual recargamos la configuración de nuestra terminal:
 
 ```bash
@@ -241,7 +259,7 @@ source ~/.bashrc
 
 - Ahora ya podemos utilizar micromamba invocándolo directamente por su nombre. Micromamba cuenta con un entorno `base` pre-instalado: podemos activarlo con `micromamba activate`. Cuando se haya activado aparecerá `(base)` a la izquierda de nuestra linea de comandos. Para salir, utiliza `micromamba deactivate`.
 
-- Por último vamos a configurar nuestro `.condarc`:
+- Por último vamos a configurar nuestro `.condarc` (micromamba lee el mismo fichero de configuración que conda). Es un fichero pequeño de configuración personal, así que va en el home:
 
 ```bash
 touch ~/.condarc
@@ -296,7 +314,7 @@ micromamba create -y -n mamba_env python==3.12.0 pip twine -c conda-forge
 
   - Tus paquetes ahora están aislados del   sistema global. Verás `(mamba_env)` añadido en la esquina   izquierda del prompt de tu terminal como indicador de que   el entorno está activado.
 
-  - Puedes probar `pip list`   ahora, ya que estará disponible dentro del entorno   virtual. Esto listará todos los paquetes instalados con   pip. Intenta hacer lo mismo en el anterior virtualenv   `mamba_env` para ver qué ocurre (_pista: primero necesitarás   salir con `micromamba deactivate`_).
+  - Puedes probar `pip list`   ahora, ya que estará disponible dentro del entorno   virtual. Esto listará todos los paquetes instalados con   pip. Intenta hacer lo mismo en el anterior virtualenv   `bioenv` para ver qué ocurre (_pista: primero necesitarás   salir con `micromamba deactivate`_).
 
   - Veamos si `seqkit` está disponible en pip o micromamba para poder instalarlo:
   Pip no tiene un comando oficial para buscar un paquete, debes ir a su página web y usar el navegador para encontrarlo [https://pypi.org/search](<https://pypi.org/>  search). Es crucial inspeccionarlo antes de instalar, ya que podría haber un paquete con el mismo nombre que el que quieres pero con diferente funcionalidad.
@@ -354,7 +372,7 @@ micromamba create -y -n mamba_env python==3.12.0 pip twine -c conda-forge
 
   - **Consejo**: si quieres instalar paquetes de   Python, usa `pip install` ya que es el repositorio de   paquetes de Python más grande, pero para herramientas más   complejas como `bedtools` o ``fastp utiliza **micromamba** o   **conda**.
 
-  - Ahora que ya tenemos instalado `seqkit`, vamos a hacer una pequeña prueba para ver que funciona:
+  - Ahora que ya tenemos instalado `seqkit`, vamos a hacer una pequeña prueba para ver que funciona. Seguimos dentro de la sesión interactiva del nodo de cómputo, así que no hace falta `srun` para cada comando:
 
   ```bash
   micromamba activate mamba_env
@@ -365,7 +383,7 @@ micromamba create -y -n mamba_env python==3.12.0 pip twine -c conda-forge
 
   ```bash
   # zcat permite leer archivos comprimidos
-  srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:02:00 zcat /data/courses/hpc_course/*HPC-COURSE_${USER}/RAW/virus1_R1.fastq.gz | seqkit stats
+  zcat ../00-reads/virus1_R1.fastq.gz | seqkit stats
 
   #Output
   #file  format  type  num_seqs     sum_len  min_len  avg_len  max_len
@@ -374,41 +392,120 @@ micromamba create -y -n mamba_env python==3.12.0 pip twine -c conda-forge
   micromamba deactivate
   ```
 
+  - Cuando termines, sal de la sesión interactiva para volver al nodo de acceso y liberar el nodo de cómputo (el prompt vuelve a `login01`):
+
+  ```bash
+  exit
+  ```
+
+### Usar el entorno común del curso: activate, srun y sbatch
+
+Instalar el software de cada herramienta en cada alumno es lento. Para el curso hay un **entorno común** ya instalado, con FastQC, MultiQC, seqkit, fastp, SPAdes y Nextflow, en `/data-ciber/infec/hpccourse/common/envs/curso_hpc`. Solo tienes que leerlo, no modificarlo. Hay tres maneras de usarlo, según dónde trabajes:
+
+1. **Sesión interactiva (`activate`)**: para probar cosas a mano en un nodo de cómputo.
+
+```bash
+srun --partition=test --cpus-per-task=2 --mem=4G --time=00:30:00 --pty bash
+micromamba activate /data-ciber/infec/hpccourse/common/envs/curso_hpc
+seqkit version
+fastqc --version
+micromamba deactivate
+exit
+```
+
+Output:
+
+```bash
+seqkit v2.10.1
+FastQC v0.12.1
+```
+
+`[CONFIRMAR: versiones reales de seqkit y FastQC del entorno común y que el alumno puede activarlo (lectura)]`
+
+2. **`srun` (`micromamba run`)**: un comando suelto, lanzado desde el nodo de acceso pero ejecutado en un nodo de cómputo. No hace falta activar nada; se indica la ruta del entorno con `-p`:
+
+```bash
+cd /data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_${USER}/ANALYSIS/06-software-management
+srun --partition=test --cpus-per-task=1 --mem=1G --time=00:05:00 \
+  /data-ciber/infec/hpccourse/common/bin/micromamba run -p /data-ciber/infec/hpccourse/common/envs/curso_hpc \
+  seqkit stats ../00-reads/virus1_R1.fastq.gz
+```
+
+Output:
+
+```bash
+file                        format  type  num_seqs     sum_len  min_len  avg_len  max_len
+../00-reads/virus1_R1.fastq.gz  FASTQ   DNA    142,672  15,874,146       35    111.3      151
+```
+
+3. **`sbatch` (`micromamba run`)**: lo mismo, pero dentro de un script. En un trabajo con `sbatch` **no** se activan entornos con `micromamba activate` (el script no lee tu `.bashrc`): se usa siempre `micromamba run -p`.
+
+```bash
+# con srun y sbatch el directorio de envío es el directorio actual
+cd /data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_${USER}/ANALYSIS/06-software-management
+mkdir -p logs
+cat > seqkit_stats.sbatch <<'EOF'
+#!/bin/bash
+#SBATCH --job-name=seqkit_stats
+#SBATCH --partition=test
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=1G
+#SBATCH --time=00:05:00
+#SBATCH --output=logs/%x_%j.out
+
+echo "Host: $(hostname)"
+/data-ciber/infec/hpccourse/common/bin/micromamba run -p /data-ciber/infec/hpccourse/common/envs/curso_hpc \
+  seqkit stats ../00-reads/virus1_R1.fastq.gz ../00-reads/virus1_R2.fastq.gz
+EOF
+sbatch seqkit_stats.sbatch
+squeue -u "$USER"
+# espera a que squeue -u "$USER" no muestre el trabajo (repítelo hasta que desaparezca) y entonces:
+cat logs/seqkit_stats_*.out
+# si el log aún estaba vacío o no existía, repite el cat cuando el trabajo haya terminado
+cat logs/seqkit_stats_*.out
+```
+
+- ¿En qué nodo se ha ejecutado el trabajo? ¿Por qué hemos usado rutas relativas (`../00-reads`) en el script?
+
 ### (Extra) Cómo compartir entornos virtuales entre usuarios con micromamba
 
-- Configura `.condarc` para utilizar un directorio de entornos común para otros usuarios:
+- Configura `.condarc` para utilizar un directorio de entornos común para otros usuarios. `/data-ciber/infec/hpccourse/common/envs` es de solo lectura para ti, así que **se añade** a la lista (no sustituye a tu directorio de entornos):
 
     ```bash
     nano ~/.condarc
     envs_dirs:
-       - RUTA_POSIBLE/micromamba/envs
+       - /data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_<usuario>/ANALYSIS/06-software-management/micromamba/envs
+       - /data-ciber/infec/hpccourse/common/envs
     ```
 
-  A partir de ahora, tendrás disponibles todos los entornos creados y guardados en esa localización. Y todos los usuarios que hagan lo mismo tendrán acceso a la misma lista de entornos.
+  A partir de ahora, tendrás disponibles todos los entornos creados y guardados en esas localizaciones. Y todos los usuarios que hagan lo mismo tendrán acceso a la misma lista de entornos.
 
 ### 2.2 Otros gestores: Easybuild
 
 - Easybuild es un gestor de software especialmente pensado para sistemas HPC como el nuestro. Este gestor permite a los administradores empaquetar software en módulos o `modules`. Esto hace accesibles a los usuarios múltiples versiones de un mismo software de forma rápida y eficaz.
 <br>
-- Vamos a probar un ejemplo con R. Intentemos iniciar una sesión de R:
+- Vamos a probar un ejemplo con R. Abre de nuevo una sesión interactiva en un nodo de cómputo e intentemos iniciar una sesión de R:
 
 ```bash
+srun --partition=test --cpus-per-task=2 --mem=4G --time=00:30:00 --pty bash -l
 R
 # Output
 # -bash: R: command not found
 ```
 
+`[CONFIRMAR: que R no está en el PATH del sistema en los nodos de cómputo]`
+
 - Como podemos ver, R no está instalado a nivel de sistema (no es accesible directamente para los usuarios). Sin embargo, podemos acceder a R en el HPC a través de `modules`
 
 ```bash
-module load R/4.1.3
+module load R/4.2.1
 R
 "
 Output
 
-R version 4.1.3 (2022-03-10) -- "One Push-Up"
+R version 4.2.1 (2022-06-23) -- "Funny-Looking Kid"
 Copyright (C) 2022 The R Foundation for Statistical Computing
-Platform: x86_64-conda-linux-gnu (64-bit)
+Platform: x86_64-pc-linux-gnu (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -429,120 +526,88 @@ ctrl+D para salir y pulsar "n" (no guardar)
 "
 ```
 
+`[CONFIRMAR: salida real de R tras module load R/4.2.1 (plataforma y si el módulo carga antes sus dependencias, p. ej. el compilador gnu)]`
+
 Aunque esto pueda parecer engorroso, si sólo tuvieramos una sóla versión de R instalada a nivel de sistema, impediría a los usuarios ejecutar software que requiera de versiones concretas de R para su funcionamiento.
 
 - **¿Cómo listar los módulos accesibles en el HPC?**.
-Para ello bastará con utilizar `module avail`. En el output veremos una gran lista de módulos, agrupados por categorías, entre ellas:
+Para ello bastará con utilizar `module avail`. En el output veremos una gran lista de módulos: compiladores (`gnu13`, `intel`), librerías MPI (`openmpi5`, `mpich`), librerías científicas (`openblas`, `hdf5`, `netcdf`, `boost`), R y paquetes de Python (`py3-numpy`, `py3-scipy`), EasyBuild o `cmake`, entre otros. `[CONFIRMAR: agrupación de módulos por categorías en la salida de module avail del HPC-CIBER]`
+Para cada módulo veremos el nombre del módulo seguido por `/` y la versión del software contenido (ej: `R/4.2.1`).
 
-      - `bio`: Software bioinformático
-      - `data`: Software de gestión de datos como MariaDB o XML
-      - `tools`: Herramientas variadas como compresores de archivos
-      - ``lang``:lenguajes de programación.
-      - `math`: software de cálculo/matemático.
-      - `vis`: software de visualizacion genérico o de datos.
-Para cada módulo veremos el nombre del módulo seguido por `/` y la versión del software contenido (ej: `python/3.6.9`).
-- Podemos utilizar `module avail <regex>` para buscar modulos por su nombre o parte de éste. Por ejemplo, para buscar todas las versiones de R disponibles:
+  **Ojo:** a día de hoy, FastQC, MultiQC, SPAdes, RAxML, Nextflow, Java y Apptainer no están disponibles como módulo en el HPC-CIBER. Por eso, para esas herramientas usamos el entorno común de micromamba del apartado anterior.
+- Podemos utilizar `module avail <regex>` para buscar modulos por su nombre o parte de éste. Por ejemplo, para buscar todas las versiones de OpenMPI disponibles:
 
 ```bash
-module avail python/
+module avail openmpi
 
 "
 Output
 
-------------------- /opt/modulefiles/eb/bio ------------------
-   bx-python/0.8.9-foss-2020a-Python-3.8.2
-
-------------------- /opt/modulefiles/eb/lang -------------------
-   Python/2.7.18-GCCcore-9.3.0     Python/3.7.4-GCCcore-8.3.0    Python/3.8.6-GCCcore-10.2.0         Python/3.9.5-GCCcore-10.3.0
-   Python/2.7.18-GCCcore-10.2.0    Python/3.8.2-GCCcore-9.3.0    Python/3.9.5-GCCcore-10.3.0-bare    Python/3.10.4-GCCcore-11.3.0-bare (D)
+   openmpi5/5.0.3
 
   Where:
    D:  Default Module
-
-If the avail list is too long consider trying:
-
-"module --default avail" or "ml -d av" to just list the default modules.
-"module overview" or "ml ov" to display the number of modules for each name.
 
 Use "module spider" to find all possible modules and extensions.
 Use "module keyword key1 key2 ..." to search for all possible modules matching any of the "keys".
 "
 ```
 
-Otra opción más dirigida es `module spider`. La principal diferencia con `module avail`es que `spider` te devuelve cada paquete de forma individualizada con una descripción y sus versiones disponibles, en vez de un listado genérico. Vamos a repetir la búsqueda de las versiones de python con esta opción:
+`[CONFIRMAR: salida real de module avail openmpi (ruta de los módulos y otras versiones)]`
+
+Otra opción más dirigida es `module spider`. La principal diferencia con `module avail`es que `spider` te devuelve cada paquete de forma individualizada con una descripción y sus versiones disponibles, en vez de un listado genérico. Vamos a repetir la búsqueda de las versiones de OpenMPI con esta opción:
 
 ```bash
-module spider Python
+module spider openmpi5
 
 " Output
 ----------------------------------------------------------------------------
-  Python:
+  openmpi5:
 ----------------------------------------------------------------------------
     Description:
-      Python is a programming language that lets you work more quickly and
-      integrate your systems more effectively.
+      [descripción del módulo]
 
      Versions:
-        Python/2.7.18-GCCcore-9.3.0
-        Python/2.7.18-GCCcore-10.2.0
-        Python/3.7.4-GCCcore-8.3.0
-        Python/3.8.2-GCCcore-9.3.0
-        Python/3.8.6-GCCcore-10.2.0
-        Python/3.9.5-GCCcore-10.3.0-bare
-        Python/3.9.5-GCCcore-10.3.0
-        Python/3.10.4-GCCcore-11.3.0-bare
-     Other possible modules matches:
-        bx-python
+        openmpi5/5.0.3
 
 ----------------------------------------------------------------------------
-  To find other possible module matches execute:
-
-      $ module -r spider '.*Python.*'
-
-----------------------------------------------------------------------------
-  For detailed information about a specific "Python" package (including how to load the modules) use the module's full name.
-  Note that names that have a trailing (E) are extensions provided by other modules.
+  For detailed information about a specific "openmpi5" package (including how to load the modules) use the module's full name.
   For example:
 
-     $ module spider Python/3.10.4-GCCcore-11.3.0-bare
+     $ module spider openmpi5/5.0.3
 ----------------------------------------------------------------------------
 "
 ```
 
-Es importante mencionar que es **case-sensitive** por lo que no es lo mismo buscar `Python` que `python`. Como esta última opción nos enseñará todos los paquetes que contengan python en alguna parte de su nombre, podemos reducir el rango de búsqueda incluyendo el parámetro `-r`:
+`[CONFIRMAR: salida real de module spider openmpi5]`
+
+Es importante mencionar que es **case-sensitive** por lo que no es lo mismo buscar `R` que `r`. `[CONFIRMAR: sensibilidad a mayúsculas de module spider/avail en el Lmod del HPC-CIBER]` Como esta última opción nos enseñará todos los paquetes que contengan el texto buscado en alguna parte de su nombre, podemos reducir la búsqueda con una expresión regular incluyendo el parámetro `-r`:
 
 ```bash
-module -r spider Python
+module -r spider openmpi
 
 " Output
 ----------------------------------------------------------------------------
-  Python:
+  openmpi5:
 ----------------------------------------------------------------------------
     Description:
-      Python is a programming language that lets you work more quickly and
-      integrate your systems more effectively.
+      [descripción del módulo]
 
      Versions:
-        Python/2.7.18-GCCcore-9.3.0
-        Python/2.7.18-GCCcore-10.2.0
-        Python/3.7.4-GCCcore-8.3.0
-        Python/3.8.2-GCCcore-9.3.0
-        Python/3.8.6-GCCcore-10.2.0
-        Python/3.9.5-GCCcore-10.3.0-bare
-        Python/3.9.5-GCCcore-10.3.0
-        Python/3.10.4-GCCcore-11.3.0-bare
+        openmpi5/5.0.3
 
 ----------------------------------------------------------------------------
-  For detailed information about a specific "Python" package (including how to load the modules) use the module's full name.
-  Note that names that have a trailing (E) are extensions provided by other modules.
+  For detailed information about a specific "openmpi5" package (including how to load the modules) use the module's full name.
   For example:
 
-     $ module spider Python/3.10.4-GCCcore-11.3.0-bare
+     $ module spider openmpi5/5.0.3
 ----------------------------------------------------------------------------
 "
 ```
 
-- **Prueba por tu cuenta** a lanzarlo ahora sin `-r`. ¿Qué diferencias ves?
+`[CONFIRMAR: salida real de module -r spider openmpi]`
+
+- **Prueba por tu cuenta** a lanzarlo ahora sin `-r`. ¿Qué diferencias ves? (Pista: `module spider openmpi` sin `-r` te sugerirá `openmpi5`.)
 <br>
 
 - Si quieres comprobar **qué módulos están activos** en tu sesión, puedes ejecutar `module list`.
@@ -550,47 +615,55 @@ Cuando termines de usar un módulo, puedes ejecutar `module unload <module_name>
 
 **Puedes combinar modules y entornos virtuales**: Por ejemplo, puedes iniciar el entorno `mamba_env` de micromamba y se mantendrán cargados los módulos que tuvieras cargados, o cargar módulos desde dentro, como prefieras.
 
-## 3. Contenedores: Docker & Singularity
+- Cuando termines, sal de la sesión interactiva:
+
+```bash
+exit
+```
+
+## 3. Contenedores: Docker & Apptainer
+
+`[CONFIRMAR: que Apptainer está instalado y cómo se carga (módulo o sistema) en los nodos de cómputo]`
 
 - **¿Por qué contenedores?**
   Portabilidad y reproducibilidad de entornos de software.
 
 - **Práctica:**
-  Desafortunadamente, no tenemos Docker disponible en nuestro HPC. **Singularity** es un buen reemplazo de Docker ya que gestiona contenedores y además está **específicamente diseñado para sistemas HPC**.
+  Desafortunadamente, no tenemos Docker disponible en nuestro HPC. **Apptainer** (el sucesor de Singularity, con los mismos comandos) es un buen reemplazo de Docker ya que gestiona contenedores y además está **específicamente diseñado para sistemas HPC**: el contenedor corre con tu usuario, sin permisos de administrador.
 
-- En este ejercicio usaremos **fastp** para convertir algunos archivos bam de nuevo a fastq. Busquemos un contenedor de Singularity con el software requerido:
-
-```bash
-singularity search fastp
-```
-
-Espera, parece que Singularity no está disponible... Así es, porque para mantener la reproducibilidad los HPC no tienen tanto software instalado a nivel de sistema.
-En nuestro caso, Singularity se accede a través de **módulos de EasyBuild**:
+- En este ejercicio usaremos **fastp** para recortar y filtrar por calidad las lecturas de una muestra. Trabaja desde una sesión interactiva en un nodo de cómputo:
 
 ```bash
-module load singularity
-singularity search fastp
-
-"Output
-Found 6 container images for amd64 matching "fastp":
-
-        library://abourdais/default/fastplast:lastest
-
-        library://edwardbirdlab/fastp/fastp:1.0
-
-        library://hud/mgnext/fastp:0.20.1
-
-        library://jiayiliujiayi/condas/fastp:0.23.2
-
-        library://marcniebel/repo/fastp:1.0.0
-
-        library://wallaulabs/viralflow/fastp:0.23.4
-"
+srun --partition=test --cpus-per-task=2 --mem=4G --time=00:30:00 --pty bash -l
+apptainer --version
 ```
 
-- Estos son repositorios comunitarios de singularity. Como podéis ver las versiones están muy limitadas y no todas las ubicaciones están contrastadas. Nosotros recomendamos otras opciones, especialmente pensadas para software científico, que veremos en el siguiente punto.
+### 3.1 Las imágenes comunes del curso
 
-### 3.1 Descargar y ejecutar un contenedor de Singularity
+Igual que el entorno de micromamba, el curso tiene una carpeta común con imágenes de Apptainer ya descargadas, que todos podéis usar (solo lectura):
+
+```bash
+ls -lh /data-ciber/infec/hpccourse/common/images/
+# fastp.sif   ...
+```
+
+`[CONFIRMAR: imágenes que deja el profesor en common/images]`
+
+Ejecutar un programa de una imagen es `apptainer exec <imagen> <comando>`:
+
+```bash
+apptainer exec /data-ciber/infec/hpccourse/common/images/fastp.sif fastp --version
+```
+
+`apptainer exec` ejecuta un comando con todo lo que hay instalado dentro del contenedor, sin abrir una sesión en él. En cambio, `apptainer shell` te abre una terminal dentro del contenedor (sales con `exit` o `Ctrl+D`):
+
+```bash
+apptainer shell /data-ciber/infec/hpccourse/common/images/fastp.sif
+fastp --help
+exit
+```
+
+### 3.2 Descargar tu propia imagen
 
 Existen muchos repositorios de contenedores, siendo [https://hub.docker.com](https://hub.docker.com) el más común. Para herramientas bioinformáticas recomendamos:
 
@@ -598,69 +671,55 @@ Existen muchos repositorios de contenedores, siendo [https://hub.docker.com](htt
 - [biocontainers registry](https://biocontainers.pro/registry)
 - [sequera containers](https://seqera.io/containers/)
 
-El comando `singularity run` ya descarga la imagen antes de ejecutarla, lo cual usaremos en este ejercicio para correr un contenedor de fastp directamente desde el repositorio de Galaxy.
-
-**Cómo usar `singularity run/exec`:**
-
-`singularity run` iniciará una sesión en el container y ejecutará la acción por defecto programada en él si la hubiere.
+Las imágenes ocupan cientos de MB, así que la caché y las imágenes van a tu carpeta de `/scratch`, nunca al home. Sigue en la sesión interactiva (los nodos de cómputo tienen salida a internet):
 
 ```bash
-singularity run https://depot.galaxyproject.org/singularity/fastp%3A1.0.1--heae3180_0
-# Ahora estaremos dentro del container, ya que esta imagen no tiene proceso de inicio.
-# Podemos probar a lanzar fastp para ver que está disponible en el container
-fastp --help
-exit # Salir del container. También con ctrl+D
+# Sustituye <AAAAMMDD> antes de pegar
+mkdir -p /scratch/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_${USER}/ANALYSIS/06-software-management/apptainer_images /scratch/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_${USER}/ANALYSIS/06-software-management/apptainer_cache
+export APPTAINER_CACHEDIR=/scratch/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_${USER}/ANALYSIS/06-software-management/apptainer_cache
+cd /scratch/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_${USER}/ANALYSIS/06-software-management
+apptainer pull apptainer_images/fastp.sif https://depot.galaxyproject.org/singularity/fastp%3A1.0.1--heae3180_0
+ls -lh apptainer_images/
 ```
 
-En contraparte tenemos `singularity exec`, que permite configurar lo que queremos que se ejecute con el container, sin iniciar una sesión en él, pero aprovechándonos de todas las dependencias que se encuentren instaladas dentro. Ejemplo:
+`apptainer run` hace lo mismo que `exec` pero ejecuta la acción por defecto programada en la imagen, si la tiene; y acepta directamente una URL (descarga la imagen a la caché y la ejecuta):
 
 ```bash
-singularity exec https://depot.galaxyproject.org/singularity/fastp%3A1.0.1--heae3180_0 fastp --help
+apptainer exec https://depot.galaxyproject.org/singularity/fastp%3A1.0.1--heae3180_0 fastp --help
+exit     # salimos de la sesión interactiva
 ```
 
-Si queremos simplemente descargar la imagen para tenerla accesible en local, podemos utilizar `singularity pull`:
+### 3.3 Lanzar el contenedor con srun
+
+Como ya sabéis, siempre es mejor lanzar los trabajos con `srun` o `sbatch`. Lo mismo aplica para procesos con contenedores. Desde `login01`:
 
 ```bash
-cd /data/courses/hpc_course/*_HPC-COURSE_${USER}/ANALYSIS/
-mkdir -p 06-software-management/singularity_images 06-software-management/singularity_cache
-singularity pull 06-software-management/singularity_images/fastp.img https://depot.galaxyproject.org/singularity/fastp%3A1.0.1--heae3180_0
+cd /scratch/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_${USER}/ANALYSIS/06-software-management
+srun --partition=test --cpus-per-task=2 --mem=2G --time=00:05:00 apptainer exec \
+  --bind /data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_${USER},/scratch/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_${USER} \
+  /data-ciber/infec/hpccourse/common/images/fastp.sif \
+  fastp -w 2 -i /data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz -I /data-ciber/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R2.fastq.gz \
+        -o trimmed_virus1_R1.fastq.gz -O trimmed_virus1_R2.fastq.gz
+ls -lh trimmed_virus1_R*.fastq.gz fastp.html fastp.json
 ```
 
-Como ya sabéis, siempre es mejor lanzar los trabajos con `srun`. Lo mismo aplica para procesos con containers:
+Al hacer `--bind <PATH>`, lo que pongamos en `<PATH>` será accesible dentro del contenedor (varias rutas, separadas por comas). En este caso, tu carpeta del proyecto (los datos) y su espejo en `/scratch` (los resultados). `-w 2` le dice a fastp que use las 2 CPU reservadas.
 
-```bash
-cd 06-software-management
-srun --partition=short_idx --cpus-per-task=1 --mem=2G --time=00:05:00 singularity exec \
---bind /data/courses/hpc_course/*_HPC-COURSE_${USER} \
-./singularity_images/fastp.img fastp -i ../00-reads/virus1_R1.fastq.gz -I ../00-reads/virus1_R2.fastq.gz -o trimmed_virus1_R1.fastq.gz -O trimmed_virus1_R2.fastq.gz
-```
+### 3.4 Otros conceptos importantes sobre Apptainer
 
-Al hacer `--bind <PATH>`, lo que pongamos en `<PATH>` será accesible dentro del contenedor. Por ejemplo en este caso `/scratch/hpc_course/<CARPETA_HPC_COURSE>` será accesible en el contenedor.
-
-### 3.2 Otros conceptos importantes sobre singularity
-
-Singularity utiliza por defecto dos variables para el guardado de cache (imagenes guardadas al lanzar exec y run) y imagenes (pull). En este caso, podemos modificarlas por defecto configurando nuestro ``~/.bashrc``:
-
-```bash
-# Añadiremos estas lineas a nuestro ~/.bashrc
-export SINGULARITY_CACHEDIR=/scratch/hpc_course/<CARPETA_HPC_COURSE>/ANALYSIS/06-software-management/singularity_cache
-export SINGULARITY_PULLFOLDER=/scratch/hpc_course/<CARPETA_HPC_COURSE>/ANALYSIS/06-software-management/singularity_images/
-```
-
-Después, hacemos `source ~/.bashrc` para aplicar los cambios y a partir de ahora nuestras imagenes serán descargadas ahi y singularity buscará automáticamente imágenes en guardadas en `SINGULARITY_CACHEDIR` antes de descargar nuevas.
-**Nota**: Al igual que lo explicado con micromamba, con singularity también es posible compartir ubicación de imagenes o containers. Si por ejemplo nos coordináramos entre usuarios para usar una misma carpeta compartida, podríamos tener todos acceso a las mismas imágenes de singularity.
-
-- Para uso únicamente interactivo dentro de una imagen, ejecuta:
+- Para que la caché vaya siempre a `/scratch`, añade a tu `~/.bashrc` (sustituye `<AAAAMMDD>` por tu fecha antes de pegar) y haz `source ~/.bashrc`:
 
   ```bash
-  singularity shell /path/to/image
+  export APPTAINER_CACHEDIR=/scratch/infec/hpccourse/<AAAAMMDD>_HPC-COURSE_${USER}/ANALYSIS/06-software-management/apptainer_cache
   ```
+
+- Igual que con micromamba, se pueden compartir imágenes en una carpeta común (como `/data-ciber/infec/hpccourse/common/images`): así todo un grupo usa la misma versión y nadie la descarga dos veces.
 
 - Puedes **configurar y crear tu propio contenedor vía web** fácilmente con [https://seqera.io/containers](https://seqera.io/containers).
   Solo busca cada dependencia y añádela a la lista, luego haz clic en **"Get Container"** y espera a que la imagen esté lista. Una vez completado, puedes usarla con:
 
   ```bash
-  singularity run <container_url>
+  apptainer run <container_url>
   ```
 
-- Si quieres aprender más sobre cómo crear tu propio contenedor, recomendamos revisar la documentación de [singularity build](https://docs.sylabs.io/guides/3.0/user-guide/build_a_container.html) y [docker build](https://docs.docker.com/get-started/workshop/02_our_app/) para conocer todas las especificaciones necesarias.
+- Si quieres aprender más sobre cómo crear tu propio contenedor, recomendamos revisar la documentación de [apptainer build](https://apptainer.org/docs/user/latest/build_a_container.html) y [docker build](https://docs.docker.com/get-started/workshop/02_our_app/) para conocer todas las especificaciones necesarias.
