@@ -110,7 +110,7 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
     pip install seqkit
     ```
 
-  - Bueno, eso no salió como esperábamos ¿verdad? Como vimos en la clase teórica, pip no crea ninguna virtualización, solo gestiona paquetes y dependencias. Por lo tanto, si intentáramos instalar algo con pip, terminaríamos instalándolo para todos los demás usuarios del HPC. Esa es la razón principal por la que **pip no está instalado globalmente en nuestro HPC**. `[CONFIRMAR: que en los nodos de cómputo del HPC-CIBER no hay pip fuera de un entorno virtual; si lo hubiera, el comando anterior daría otro error]`
+  - Bueno, eso no salió como esperábamos ¿verdad? En el HPC-CIBER hay un `pip` del sistema (`/usr/bin/pip`, compruébalo con `which pip`), pero instala en las carpetas del sistema, que no puedes modificar: verás un error de permisos (`Permission denied`) o un aviso de que el entorno está gestionado por el sistema. Como vimos en la clase teórica, pip no crea ninguna virtualización, solo gestiona paquetes y dependencias: si pudiera instalar ahí, cambiaría el software de todos los usuarios del HPC. Por eso **en un HPC nunca se usa el pip del sistema**: se instala siempre dentro de un entorno (venv o micromamba). `[CONFIRMAR: mensaje exacto de pip install sin entorno en los nodos de cómputo]`
 
   - **Discusión:** ¿Se te ocurre alguna alternativa para instalar seqkit?
   Vamos a ver si lo tenemos disponible dentro de **bioenv**, el entorno virtual que creamos previamente.

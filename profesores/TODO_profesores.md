@@ -79,7 +79,7 @@ Cada uno aparece en la práctica como `[CONFIRMAR: …]`. Se resuelven al final,
 |---|---|
 | 1 · Linux (`handson_linux2_FileProcessing.md`) | Salida a internet desde el nodo de acceso (`wget`) |
 | 4 · Acceso (`handson_access.md`) | Formato real de `id` · permisos reales de las carpetas del proyecto · claves SSH a través de Zscaler · que el límite del PRA es 50 MB por fichero |
-| 6 · Software (`handson_software_management.md`) | Plazo del autolimpiado de `/scratch` · que no hay `pip` fuera de un venv en los nodos y salida real de `pip list` · versión de micromamba en `common/bin` · que los alumnos pueden activar `common/envs/curso_hpc` y versiones de seqkit y FastQC · `R` fuera del PATH y salida de `module load R/4.2.1` · salidas de `module avail/spider openmpi` · mayúsculas en `module spider` · cómo se carga Apptainer · que las imágenes de `common/images` funcionan en los nodos |
+| 6 · Software (`handson_software_management.md`) | Plazo del autolimpiado de `/scratch` · mensaje de `pip install` sin entorno (hay `/usr/bin/pip` en los nodos) y salida real de `pip list` · versión de micromamba en `common/bin` · que los alumnos pueden activar `common/envs/curso_hpc` y versiones de seqkit y FastQC · `R` fuera del PATH y salida de `module load R/4.2.1` · salidas de `module avail/spider openmpi` · mayúsculas en `module spider` · cómo se carga Apptainer · que las imágenes de `common/images` funcionan en los nodos |
 | 5 · srun (`handson_srun.md`) | Mensaje de memoria agotada (cgroups) · salida real de `lscpu` en un nodo de cómputo · `nvidia-smi` y acceso a `gpu` · `sacct` activo y visible para el alumno · FastQC instalado en el entorno común |
 
 ## 4. Ya comprobado (25/11/2026)
