@@ -44,7 +44,7 @@ En esta práctica aprenderás a:
 
   - `/hpcciber/home/<usuario>` → configuración y scripts personales pequeños. Poco espacio; no se analiza aquí.
   - `/data-ciber/<área>/<proyecto>` → el proyecto: datos, scripts del análisis, documentación y resultados. Persistente. El del curso es `/data-ciber/infec/hpccourse`.
-  - `/scratch/<área>/<proyecto>` → copia de trabajo mientras calculas. Rápido, temporal y compartido por todo CIBER. El del curso es `/scratch/infec/hpccourse`. En el HPC-CIBER se puede escribir desde el nodo de acceso, pero los análisis y las copias se hacen siempre en un nodo de cómputo.
+  - `/scratch/<área>/<proyecto>` → copia de trabajo mientras calculas. Rápido, temporal y compartido por todo CIBER. El del curso es `/scratch/infec/hpccourse`. En el HPC-CIBER se puede escribir desde el nodo de acceso, pero los análisis y las copias se hacen siempre en un nodo de cómputo. Se aplicará una política de **autolimpiado** de los ficheros inactivos: no dejes ahí nada que no estés usando.
 - Flujo de trabajo: `/data-ciber` → `/scratch` (calcular) → resultados a `/data-ciber` → limpiar `/scratch`.
 - No almacenar información no relacionada con los cálculos autorizados.
 
